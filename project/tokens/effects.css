@@ -1,0 +1,15 @@
+:root{
+  --shadow-card:0 30px 70px -30px rgba(0,0,0,.35);
+  --shadow-button:0 18px 34px -16px var(--mauve-500);
+  --shadow-overlay:0 40px 80px -28px rgba(28,16,20,.55);
+  --shadow-overlay-sm:0 26px 50px -20px rgba(28,16,20,.55);
+  --shadow-sticky:0 -12px 26px -14px rgba(58,42,46,.35);
+
+  --border-hairline:1px solid var(--rule-hairline);
+  --border-field:1px solid var(--rule-strong);
+  --border-bezel:9px solid var(--white);      /* map / framed imagery, desktop */
+  --border-bezel-sm:6px solid var(--white);   /* mobile */
+
+  /* image placeholder weave used wherever real photography is not yet in place */
+  --hatch:repeating-linear-gradient(135deg,rgba(167,106,120,.11) 0 11px,transparent 11px 22px);
+}

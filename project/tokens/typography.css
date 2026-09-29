@@ -1,0 +1,40 @@
+:root{
+  --font-display:"Cormorant Garamond",Georgia,serif;
+  --font-sans:"Manrope",system-ui,-apple-system,sans-serif;
+  --font-mono:ui-monospace,Menlo,monospace;
+
+  /* display — always Cormorant, 500/600, tight leading */
+  --display-hero:600 98px/.92 var(--font-display);
+  --display-1:600 58px/1.02 var(--font-display);
+  --display-2:600 54px/1.05 var(--font-display);
+  --display-3:600 46px/1.05 var(--font-display);
+  --display-4:600 34px/1.08 var(--font-display);
+  --display-5:600 27px/1.1 var(--font-display);
+  --display-6:600 24px/1.15 var(--font-display);
+  --quote:italic 500 21px/1.35 var(--font-display);
+
+  /* mobile display */
+  --display-hero-sm:600 54px/.93 var(--font-display);
+  --display-1-sm:600 34px/1.05 var(--font-display);
+  --display-2-sm:600 32px/1.08 var(--font-display);
+  --display-3-sm:600 30px/1.1 var(--font-display);
+
+  /* body */
+  --body-lg:400 17px/1.7 var(--font-sans);
+  --body-md:400 15px/1.7 var(--font-sans);
+  --body-sm:400 14px/1.7 var(--font-sans);
+  --body-xs:400 13px/1.6 var(--font-sans);
+
+  /* ui */
+  --eyebrow:600 11px/1 var(--font-sans);
+  --eyebrow-sm:600 9px/1 var(--font-sans);
+  --label:600 12px/1 var(--font-sans);
+  --nav:500 12px/1 var(--font-sans);
+  --price:600 12px/1 var(--font-sans);
+
+  --track-eyebrow:.3em;
+  --track-nav:.14em;
+  --track-button:.18em;
+  --track-caps:.16em;
+  --track-display:-.015em;
+}

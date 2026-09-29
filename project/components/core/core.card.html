@@ -1,0 +1,56 @@
+<!-- @dsCard group="Components" viewport="700x300" subtitle="Buttons, links, chips, fields, eyebrows" name="Core" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<style>*{box-sizing:border-box}body{margin:0;padding:22px;background:var(--surface-page);color:var(--text-strong);font-family:var(--font-sans)}
+a{color:inherit}
+.lbl{font:600 9px/1 var(--font-sans);letter-spacing:.16em;text-transform:uppercase;color:var(--text-quiet);margin:0 0 10px}
+.grp{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:var(--tap-min);border:0;border-radius:0;
+font:var(--label);letter-spacing:var(--track-button);text-transform:uppercase;text-decoration:none;cursor:pointer;
+transition:background var(--dur-tint),color var(--dur-tint),transform var(--dur-lift)}
+.btn-primary{background:var(--mauve-500);color:#fff;padding:18px 34px;box-shadow:var(--shadow-button)}
+.btn-primary:hover{background:var(--plum-700);transform:translateY(-2px)}
+.btn-deep{background:var(--plum-700);color:#fff;padding:13px 26px}
+.btn-deep:hover{background:var(--mauve-500)}
+.btn-ghost{border:1px solid var(--plum-700);color:var(--plum-700);padding:13px 26px;background:transparent}
+.btn-ghost:hover{background:var(--surface-tint-hover)}
+.btn-light{background:var(--surface-page);color:var(--plum-700);padding:11px 18px}
+.btn-light:hover{background:var(--blush-150)}
+.btn.is-disabled{opacity:.45;pointer-events:none}
+.link{display:inline-flex;align-items:center;min-height:var(--tap-min);font:600 11px/1 var(--font-sans);
+letter-spacing:var(--track-caps);text-transform:uppercase;text-decoration:none;transition:color var(--dur-tint),opacity var(--dur-tint)}
+.link-rule{border-bottom:1px solid var(--rule-accent);padding-bottom:6px}
+.link-accent{color:var(--text-accent);font-size:12px}
+.link-quiet{opacity:.55}.link-quiet:hover{opacity:1}
+.link-underline{text-decoration:underline;text-underline-offset:5px}
+.chip{display:inline-flex;align-items:center;min-height:var(--tap-min);padding:11px 18px;border:1px solid var(--rule-strong);
+font:var(--label);letter-spacing:.06em;background:transparent;cursor:pointer;transition:background var(--dur-tint),color var(--dur-tint)}
+.chip.on{background:var(--mauve-500);border-color:var(--mauve-500);color:#fff}
+.field{width:100%;min-height:var(--tap-min);padding:16px;background:#fff;border:var(--border-field);border-radius:0;
+font:500 14px var(--font-sans);color:var(--text-strong);outline:none}
+.eyebrow{font:var(--eyebrow);letter-spacing:var(--track-eyebrow);text-transform:uppercase;color:var(--text-accent)}
+</style></head><body>
+
+<div style="display:grid;gap:20px">
+  <div><p class="lbl">Button — variants &amp; sizes</p>
+    <div class="grp">
+      <a class="btn btn-primary" href="#">Book an appointment</a>
+      <a class="btn btn-deep" href="#">Book now</a>
+      <a class="btn btn-ghost" href="#">Menu</a>
+      <a class="btn btn-light" href="#">Book this</a>
+      <span class="btn btn-deep is-disabled">Disabled</span>
+    </div></div>
+  <div><p class="lbl">TextLink — rule, accent, quiet, underline</p>
+    <div class="grp" style="gap:26px">
+      <a class="link link-rule" href="#">View full menu</a>
+      <a class="link link-accent" href="#">(813) 304-0330</a>
+      <a class="link link-quiet" href="#">About</a>
+      <a class="link link-underline" href="#">info@tlnailstampa.com</a>
+    </div></div>
+  <div><p class="lbl">Chip · Field · Eyebrow</p>
+    <div class="grp">
+      <span class="chip on">Manicure</span><span class="chip">Pedicure</span><span class="chip">Gel &amp; Dip</span>
+      <span style="width:190px"><input class="field" placeholder="Phone number"></span>
+      <span class="eyebrow">What we're about</span>
+    </div></div>
+</div>
+</body></html>

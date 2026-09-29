@@ -1,0 +1,26 @@
+:root{
+  /* horizontal page gutters */
+  --gutter-desktop:56px;
+  --gutter-mobile:20px;
+
+  /* vertical section rhythm — the desktop site breathes at 112–136px */
+  --section-y-lg:136px;
+  --section-y:128px;
+  --section-y-sm:112px;
+  --section-y-mobile:44px;
+  --section-y-mobile-lg:52px;
+
+  /* interior */
+  --space-1:4px;  --space-2:8px;  --space-3:12px; --space-4:16px;
+  --space-5:20px; --space-6:26px; --space-7:32px; --space-8:38px;
+  --space-9:44px; --space-10:56px; --space-12:74px;
+
+  /* structural */
+  --grid-gutter:5px;      /* mosaic + card grids are nearly flush */
+  --grid-gutter-mobile:4px;
+  --marquee-gap:26px;
+  --header-h-desktop:86px;
+  --header-h-mobile:59px;
+  --tap-min:44px;         /* every interactive element holds this */
+  --radius:0;             /* the system has no corner radius, anywhere */
+}

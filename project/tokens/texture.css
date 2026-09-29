@@ -1,0 +1,11 @@
+/* The falling-petal field. A vertically seamless SVG tile, painted as a background
+   layer so type always sits above it. On light surfaces use the pink tile; on plum
+   or ink bands use the blush tile so the trail keeps running. ~10% opacity, baked in. */
+:root{
+  --petal-desktop:url("../assets/textures/petal-field-desktop-pink.svg");
+  --petal-desktop-on-dark:url("../assets/textures/petal-field-desktop-blush.svg");
+  --petal-mobile:url("../assets/textures/petal-field-mobile-pink.svg");
+  --petal-mobile-on-dark:url("../assets/textures/petal-field-mobile-blush.svg");
+  --petal-size-desktop:1440px 2600px;
+  --petal-size-mobile:390px 1700px;
+}

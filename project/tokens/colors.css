@@ -1,0 +1,47 @@
+:root{
+  /* ---- base palette (exact values from the site build) ---- */
+  --blush-50:#FBF4F1;   /* page field  */
+  --blush-100:#F7EDE9;  /* footer wash top */
+  --blush-150:#F5DCE1;  /* blush       */
+  --blush-200:#F0E2DD;  /* soft card   */
+  --blush-250:#F0DDD9;  /* footer wash bottom */
+  --blush-300:#EFD4DB;  /* hero gradient end */
+  --rose-400:#C9899A;   /* rose rule / accent */
+  --mauve-500:#A76A78;  /* primary     */
+  --plum-700:#5E3A44;   /* deep        */
+  --ink-900:#3A2A2E;    /* ink         */
+  --gold-500:#BE9A46;   /* stars, rare */
+  --petal-pink:#E8629B; /* texture on light */
+  --petal-blush:#FFC2D8;/* texture on dark  */
+  --white:#FFFFFF;
+  --canvas:#e9e7e2;     /* the surface the site cards sit on */
+
+  /* ---- text ---- */
+  --text-strong:var(--ink-900);
+  --text-body:#6d565c;
+  --text-muted:#7a636a;
+  --text-quiet:#8a7178;
+  --text-placeholder:#9a868b;
+  --text-accent:var(--mauve-500);
+  --text-on-dark:var(--blush-50);
+  --text-on-dark-quiet:rgba(251,244,241,.7);
+
+  /* ---- surfaces ---- */
+  --surface-page:var(--blush-50);
+  --surface-card:var(--blush-200);
+  --surface-white:var(--white);
+  --surface-dark:var(--ink-900);
+  --surface-tint-hover:#F6E5E9;
+  --gradient-hero:linear-gradient(168deg,#FBF4F1 0%,#F7E6EA 55%,#EFD4DB 100%);
+  --gradient-plum:linear-gradient(140deg,var(--mauve-500),var(--plum-700));
+  --gradient-plum-panel:linear-gradient(150deg,var(--mauve-500),var(--plum-700));
+  --gradient-footer:linear-gradient(165deg,#F7EDE9 0%,#F0DDD9 100%);
+  --gradient-placeholder:linear-gradient(160deg,#F3D6DD,#E3BCC6);
+
+  /* ---- lines ---- */
+  --rule-hairline:rgba(58,42,46,.16);
+  --rule-soft:rgba(58,42,46,.14);
+  --rule-strong:rgba(58,42,46,.22);
+  --rule-on-dark:rgba(255,255,255,.24);
+  --rule-accent:var(--rose-400);
+}

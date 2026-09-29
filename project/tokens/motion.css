@@ -1,0 +1,11 @@
+:root{
+  --ease-out-soft:cubic-bezier(.22,.61,.36,1);
+  --dur-tint:.25s;      /* color + background hovers */
+  --dur-lift:.2s;       /* button translateY */
+  --dur-image:.6s;      /* image scale on hover */
+  --dur-reveal:.85s;    /* scroll-in fade + rise */
+  --reveal-rise:30px;
+  --reveal-stagger:90ms;
+  --drift-range:22px;   /* parallax travel for framed imagery */
+  --marquee-duration:52s;
+}
