@@ -217,7 +217,9 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
     { key: 'nail-art', title: 'Nail art', blurb: 'Designs, chrome, rhinestones and charms. Per-nail pricing is fine.' },
     { key: 'lashes', title: 'Lashes', blurb: 'Lash sets and fills.' },
     { key: 'waxing', title: 'Waxing', blurb: 'Brows, face and body waxing.' },
-    { key: 'addons', title: 'Add-ons', blurb: 'Extras clients can add to any service. Mark the ones you offer and confirm each price.' }
+    { key: 'addons', title: 'Add-ons', blurb: 'Extras clients can add to any service. Mark the ones you offer and confirm each price.' },
+    { key: 'team', title: 'Team photos', blurb: 'Photos of your techs for the About page. A portrait of each person works best, plus a group photo if you have one.' },
+    { key: 'gallery', title: 'Homepage photos', blurb: 'The strip of nail photos that scrolls across the homepage. Pick your favorite recent sets.' }
   ];
   var LOCS = ['Kennedy Blvd', 'Davis Islands'];
 
@@ -234,6 +236,15 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
     { k: 'notes', label: 'Anything clients should know?', help: 'Prep, aftercare, how often to come back.', type: 'textarea' },
     { k: 'photos', label: 'Photos of this service', help: 'Your best 1–4 photos. Phone photos are fine.', type: 'photos', col: 'Photos' }
   ];
+  var MEDIA_FIELDS = {
+    team: [
+      { k: 'photos', label: 'Team photos', help: 'One portrait of each tech, plus a group photo if you have one. Bright, natural light looks best. Up to 12.', type: 'photos', max: 12, req: true, col: 'Photos' },
+      { k: 'names', label: "Who's who?", help: 'One person per line, in the same order as the photos: name, then what they are known for. e.g. "Nishia · nail art and acrylics".', type: 'textarea', req: true }
+    ],
+    gallery: [
+      { k: 'photos', label: 'Homepage carousel photos', help: '8 to 12 of your favorite recent sets. Close-ups of finished nails work best. Up to 16.', type: 'photos', max: 16, req: true, col: 'Photos' }
+    ]
+  };
   var BASIC_FIELDS = [
     { k: 'hoursKennedy', label: 'Kennedy Blvd hours', help: 'Every day of the week, including closed days.', type: 'textarea', req: true, ph: 'Mon–Thu 10am–7pm\nFri 9am–7pm\nSat 9am–6pm\nSun 11am–5pm' },
     { k: 'hoursDavis', label: 'Davis Islands hours', help: 'Every day of the week, including closed days. Our current list is missing Friday.', type: 'textarea', req: true, ph: 'Mon closed\nTue–Thu 10am–7pm\nFri ?\nSat 9am–6pm\nSun 11am–5pm' },
@@ -262,7 +273,7 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
     return fetch(SB_URL + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(args) })
       .then(function (r) { return r.json().catch(function () { return null; }).then(function (b) { if (!r.ok) { var e = new Error((b && b.message) || r.status); e.code = (b && b.message) || String(r.status); throw e; } return b; }); });
   }
-  var data = { services: {}, addons: {}, basics: null };
+  var data = { services: {}, addons: {}, basics: null, media: {} };
   var loaded = { services: false, addons: false, basics: false };
   var view = 'form', current = 'basics', built = false;
   var $ = function (s, r) { return (r || document).querySelector(s); };
@@ -283,15 +294,16 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
 
   // ---------- Completion ----------
   function filled(v) { return Array.isArray(v) ? v.length > 0 : v != null && String(v).trim() !== ''; }
-  function fieldsFor(kind) { return kind === 'svc' ? SVC_FIELDS : kind === 'addon' ? ADDON_FIELDS : BASIC_FIELDS; }
+  function fieldsFor(kind, doc) { return kind === 'svc' ? SVC_FIELDS : kind === 'addon' ? ADDON_FIELDS : kind === 'media' ? (MEDIA_FIELDS[doc && doc.id] || []) : BASIC_FIELDS; }
   function progress(kind, doc) {
-    var a = (doc && doc.a) || {}, req = fieldsFor(kind).filter(function (f) { return f.req; });
+    var a = (doc && doc.a) || {}, req = fieldsFor(kind, doc).filter(function (f) { return f.req; });
     if (kind !== 'basic' && a.offered && a.offered !== 'Yes') return { done: req.length, total: req.length, off: true };
     var d = req.filter(function (f) { return filled(a[f.k]); }).length;
     return { done: d, total: req.length, off: false };
   }
   function itemsIn(key) {
     if (key === 'basics') return data.basics ? [{ kind: 'basic', id: 'basics', doc: data.basics }] : [];
+    if (key === 'team' || key === 'gallery') return data.media[key] ? [{ kind: 'media', id: key, doc: data.media[key] }] : [];
     if (key === 'addons') return sorted(data.addons).map(function (d) { return { kind: 'addon', id: d.id, doc: d }; });
     return sorted(data.services).filter(function (d) { return d.cat === key; }).map(function (d) { return { kind: 'svc', id: d.id, doc: d }; });
   }
@@ -310,7 +322,7 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
 
   // ---------- Saving (one write at a time per document, coalesced) ----------
   var queues = {}, savedTimer;
-  function localDoc(kind, id) { return kind === 'svc' ? data.services[id] : kind === 'addon' ? data.addons[id] : data.basics; }
+  function localDoc(kind, id) { return kind === 'svc' ? data.services[id] : kind === 'addon' ? data.addons[id] : kind === 'media' ? data.media[id] : data.basics; }
   function save(kind, id, key, value) {
     var d = localDoc(kind, id);
     if (d) { d.a = Object.assign({}, d.a || {}); d.a[key] = value; }
@@ -397,7 +409,7 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
     var build = function () {
       if (formBuilt) return; formBuilt = true;
       var f = el('div', { class: 'form' });
-      var defs = fieldsFor(it.kind);
+      var defs = fieldsFor(it.kind, it.doc);
       defs.forEach(function (def) { f.appendChild(question(it, def)); });
       det.appendChild(f);
       applyOffered(it, det);
@@ -408,7 +420,7 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
   }
 
   function applyOffered(it, root) {
-    if (it.kind === 'basic') return;
+    if (it.kind === 'basic' || it.kind === 'media') return;
     var off = ((localDoc(it.kind, it.id) || {}).a || {}).offered;
     root.querySelectorAll('[data-q]').forEach(function (q) { if (q.getAttribute('data-q') !== 'offered') q.hidden = !!off && off !== 'Yes'; });
   }
@@ -469,11 +481,12 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
           } }) : null
         ]));
       });
-      if (uploads && canWrite && list.length < 6) {
+      var max = def.max || 6;
+      if (uploads && canWrite && list.length < max) {
         var input = el('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp', multiple: true });
         var lab = el('label', { class: 'upload' }, [input, el('span', { text: '+ Add photos' })]);
         input.addEventListener('change', function () {
-          var files = Array.prototype.slice.call(input.files).slice(0, 6 - list.length);
+          var files = Array.prototype.slice.call(input.files).slice(0, max - list.length);
           if (!files.length) return;
           lab.lastChild.textContent = 'Uploading…';
           var out = list.slice();
@@ -543,7 +556,7 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
     svcs.concat([data.basics], sorted(data.addons)).forEach(function (d) {
       if (d && d.updatedAt && d.updatedAt > last) { last = d.updatedAt; lastName = d.id === 'basics' ? 'Salon basics' : d.name; }
     });
-    var photos = svcs.reduce(function (n, s) { return n + (((s.a || {}).photos || []).length); }, 0);
+    var photos = svcs.concat(sorted(data.media)).reduce(function (n, s) { return n + (((s.a || {}).photos || []).length); }, 0);
 
     // Ring
     var R = 62, C = 2 * Math.PI * R, ns = 'http://www.w3.org/2000/svg';
@@ -608,7 +621,7 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
     var sel = el('select', { id: 'ans-sec', 'aria-label': 'Section to show' }, SECTIONS.map(function (s) { return el('option', { value: s.key, text: s.title, selected: s.key === ansSection }); }));
     sel.addEventListener('change', function () { ansSection = sel.value; pref('ans', sel.value); renderDash(); });
     var copyBtn = el('button', { class: 'btn ghost', type: 'button', text: 'Copy all answers (JSON)', onclick: function () {
-      var dump = { photoBase: PHOTO_BASE, basics: data.basics && data.basics.a, services: sorted(data.services).map(function (s) { return { id: s.id, category: s.cat, name: s.name, answers: s.a || {} }; }), addons: sorted(data.addons).map(function (x) { return { id: x.id, name: x.name, answers: x.a || {} }; }) };
+      var dump = { photoBase: PHOTO_BASE, basics: data.basics && data.basics.a, services: sorted(data.services).map(function (s) { return { id: s.id, category: s.cat, name: s.name, answers: s.a || {} }; }), addons: sorted(data.addons).map(function (x) { return { id: x.id, name: x.name, answers: x.a || {} }; }), media: sorted(data.media).map(function (x) { return { id: x.id, name: x.name, answers: x.a || {} }; }) };
       var txt = JSON.stringify(dump, null, 2);
       navigator.clipboard.writeText(txt).then(function () { copyBtn.textContent = 'Copied'; setTimeout(function () { copyBtn.textContent = 'Copy all answers (JSON)'; }, 2000); }, function () { copyBtn.textContent = 'Copy blocked here'; });
     } });
@@ -616,7 +629,7 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
     itemsIn(ansSection).forEach(function (it) {
       var a = it.doc.a || {}, pr = progress(it.kind, it.doc), st = statusOf(pr);
       var dl = el('dl');
-      fieldsFor(it.kind).forEach(function (f) {
+      fieldsFor(it.kind, it.doc).forEach(function (f) {
         var v = a[f.k];
         if (f.type === 'photos') {
           dl.appendChild(el('dt', { text: 'Photos' }));
@@ -665,12 +678,12 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
 
   function load() {
     return rpc('intake_load', { p_token: TOKEN }).then(function (res) {
-      var before = Object.keys(data.services).length, svc = {}, add = {}, basics = null;
+      var before = Object.keys(data.services).length, svc = {}, add = {}, media = {}, basics = null;
       (res.items || []).forEach(function (x) {
         var row = Object.assign({}, x, pendingMerge(x.kind, x.kind === 'basic' ? 'basics' : x.id, x));
-        if (x.kind === 'svc') svc[x.id] = row; else if (x.kind === 'addon') add[x.id] = row; else basics = Object.assign(row, { id: 'basics' });
+        if (x.kind === 'svc') svc[x.id] = row; else if (x.kind === 'addon') add[x.id] = row; else if (x.kind === 'media') media[x.id] = row; else basics = Object.assign(row, { id: 'basics' });
       });
-      data.services = svc; data.addons = add; data.basics = basics;
+      data.services = svc; data.addons = add; data.media = media; data.basics = basics;
       loaded.services = loaded.addons = loaded.basics = true;
       onData(Object.keys(svc).length !== before);
       return res.role;
