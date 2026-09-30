@@ -68,7 +68,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .skip { position: absolute; left: 12px; top: -60px; z-index: 100; padding: 12px 18px; background: var(--deep); color: #fff; font: 600 12px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; }
 .skip:focus { top: 12px; }
 
-.wrap { max-width: var(--frame); margin-inline: auto; padding-inline: var(--gutter); }
+/* Site-wide 1440 frame: outer elements carry backgrounds full width; .frame holds the content. */
+.frame { width: 100%; max-width: var(--frame); margin-inline: auto; padding-inline: var(--gutter); }
+.frame--flush { padding-inline: 0; } /* image grids, hero mosaic, marquee */
 
 /* Petal layers — [data-petals] sections repeat the tile above their own ground.
    js/site.js sets --px/--py so each layer lines up with the page-wide trail. */
@@ -149,8 +151,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 body.no-scroll { overflow: hidden; }
 
 /* ---------- Home hero (2a mosaic) ---------- */
-/* Site-wide frame: content (photos included) stays within var(--frame); only backgrounds run full width. */
-.hero { display: grid; grid-template-columns: 44% 56%; height: clamp(640px, 55vw, 790px); max-width: var(--frame); margin-inline: auto; }
+.hero { display: grid; grid-template-columns: 44% 56%; height: clamp(640px, 55vw, 790px); }
 .hero__panel {
   padding: 76px 54px 60px; display: flex; flex-direction: column; justify-content: center;
   background-color: var(--bg);
@@ -220,7 +221,7 @@ body.no-scroll { overflow: hidden; }
 /* ---------- Instagram marquee ---------- */
 .gram__head { text-align: center; padding-bottom: 54px; }
 .gram__head h2 { font-size: 46px; }
-.gram { overflow: hidden; padding-bottom: 132px; max-width: var(--frame); margin-inline: auto; }
+.gram { overflow: hidden; padding-bottom: 132px; }
 .gram__track { display: flex; width: max-content; animation: mq 52s linear infinite; }
 .gram__track:hover { animation-play-state: paused; }
 .gram__set { display: flex; gap: 26px; padding-right: 26px; }
@@ -474,7 +475,7 @@ a.mrow:hover, .mrow:hover { background: var(--tint); padding-left: 14px; }
 .crumbs a:hover { color: var(--deep); }
 .crumbs i { font-style: normal; opacity: .5; }
 .crumbs [aria-current] { color: var(--deep); }
-.pdp { display: grid; grid-template-columns: 1fr 1fr; max-width: var(--frame); margin-inline: auto; }
+.pdp { display: grid; grid-template-columns: 1fr 1fr; }
 .pdp__gallery { display: flex; flex-direction: column; gap: 5px; padding: 5px 0 5px 5px; }
 .pdp__gallery > .tile { flex: 1; min-height: 360px; }
 .pdp__gallery .ph { padding: 20px; }
@@ -896,7 +897,7 @@ a.mrow:hover, .mrow:hover { background: var(--tint); padding-left: 14px; }
 
   /* Locations */
   .loc, .loc--flip { display: flex; flex-direction: column; gap: 0; padding-top: 0; }
-  .flush-m { padding-inline: 0; }
+  .flush-m { padding-inline: 0; } /* mobile: location photos/maps run to the screen edge */
   .loc--flip { margin-top: 26px; }
   .loc .tile { height: 220px; }
   .loc .ph { padding: 16px; }
@@ -924,10 +925,9 @@ a.mrow:hover, .mrow:hover { background: var(--tint); padding-left: 14px; }
   .loc-cta { display: none; }
 }
 
-/* ================= 768–1023: mobile layout with the desktop gutter and 2-up grids ================= */
+/* ================= 768–1023: mobile layout with 2-up grids ================= */
 @media (min-width: 768px) and (max-width: 1023px) {
   :root {
-    --gutter: 56px;
     --tile: url('../assets/petals/desktop-pink.svg');
     --tile-light: url('../assets/petals/desktop-light.svg');
     --tile-w: 1440px;
