@@ -157,6 +157,8 @@
       var next = form.nextElementSibling;
       var note = form.querySelector('.form-note') || (next && next.classList.contains('form-note') ? next : null);
       var say = function (msg, ok) { if (note) { note.textContent = msg; note.classList.toggle('is-ok', !!ok); } };
+      var booking = form.dataset.form === 'booking';
+      var done = form.dataset.success || (booking ? 'Thank you \u2014 we\u2019ll confirm within the hour.' : 'You\u2019re on the list. Thank you!');
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         if (!form.checkValidity()) { form.reportValidity(); return; }
@@ -165,7 +167,7 @@
         if (endpoint) {
           say('Sending…');
           fetch(endpoint, { method: 'POST', body: data, headers: { Accept: 'application/json' } })
-            .then(function (r) { if (!r.ok) throw new Error(r.status); form.reset(); say(form.dataset.success || 'Thank you — we’ll be in touch within the hour.', true); })
+            .then(function (r) { if (!r.ok) throw new Error(r.status); form.reset(); say(done, true); })
             .catch(function () { say('Something went wrong. Please call us instead.'); });
           return;
         }
@@ -173,7 +175,7 @@
         data.forEach(function (v, k) { if (v) lines.push(k.replace(/_/g, ' ') + ': ' + v); });
         var subject = form.dataset.form === 'newsletter' ? 'Newsletter sign-up' : 'Appointment request';
         location.href = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(lines.join('\n'));
-        say('Opening your email app to send this to us…', true);
+        say(booking ? 'Opening your email app \u2014 send it and we\u2019ll confirm within the hour.' : 'Opening your email app to send this to us\u2026', true);
       });
     });
   }
