@@ -195,6 +195,9 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(alignPetals);
   }
 
+  // Hooks for content rendered later from the service catalog (js/catalog.js).
+  window.TLSite = { menuRail: initMenuRail, addons: initAddons, align: alignPetals };
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

@@ -47,6 +47,7 @@
 
 /* ---------- Base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
@@ -541,6 +542,18 @@ a.mrow:hover, .mrow:hover { background: var(--tint); padding-left: 14px; }
 .pdp-book .chip > span { padding: 11px 16px; letter-spacing: 0; }
 .pdp-book .frow.frow--last { margin-bottom: 18px; }
 
+/* ---------- Catalog-driven content ---------- */
+.tbd { color: var(--text-hint); font-style: italic; }
+.plum .tbd, .feature .tbd { color: inherit; opacity: .75; }
+.menu-loading { padding: 60px 0; color: var(--text-muted); }
+.svc-missing { display: grid; gap: 18px; justify-items: start; padding-block: 100px 120px; }
+.svc-missing h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(40px, 5vw, 64px); line-height: 1; }
+.svc-missing p { color: var(--text-muted); }
+.pdp__price strong.tbd { font-size: 24px; font-weight: 500; }
+.pdp__price .label.tbd { letter-spacing: .1em; }
+.pdp__notes { font: 400 15px/1.7 var(--sans); color: var(--text-body); white-space: pre-line; }
+.pdp__thumbs .tile { height: 150px; }
+
 /* ---------- Locations ---------- */
 .loc { display: grid; grid-template-columns: 1.02fr .98fr; gap: 5px; padding-top: 80px; scroll-margin-top: 20px; }
 .loc--flip { grid-template-columns: .98fr 1.02fr; padding-top: 64px; }
@@ -854,6 +867,7 @@ a.mrow:hover, .mrow:hover { background: var(--tint); padding-left: 14px; }
   .pdp__gallery .ph { padding: 16px; }
   .pdp__thumbs { gap: 4px; padding-bottom: 4px; }
   .pdp__thumbs .ph { height: 86px; }
+  .pdp__thumbs .tile { height: 86px; }
   .pdp__detail { padding: 26px var(--gutter) 28px; background-image: var(--tile), linear-gradient(168deg, #FBF4F1, #EFD4DB); }
   .pdp__tags { margin-bottom: 16px; }
   .pdp__tags .label { display: none; }
@@ -939,6 +953,7 @@ a.mrow:hover, .mrow:hover { background: var(--tint); padding-left: 14px; }
   .about-portrait-m { height: 380px; }
   .pdp__gallery > .tile { height: 460px; }
   .pdp__thumbs .ph { height: 160px; }
+  .pdp__thumbs .tile { height: 160px; }
   .loc .tile { height: 380px; }
   .loc__map .map-embed { height: 280px; }
 }
