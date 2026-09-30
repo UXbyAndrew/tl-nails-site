@@ -348,8 +348,7 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
       ]),
       el('div', { class: 'overall' }, [
         el('div', { class: 'overall-top' }, [el('span', { class: 'label', text: 'All done' }), el('b', { class: 'num', id: 'o-pct', text: o.pct + '%' })]),
-        el('div', { class: 'bar' }, [el('i', { id: 'o-bar', style: 'width:' + o.pct + '%' })]),
-        el('span', { class: 'label num', id: 'o-count', text: o.done + ' of ' + o.total + ' answers' })
+        el('div', { class: 'bar' }, [el('i', { id: 'o-bar', style: 'width:' + o.pct + '%' })])
       ])
     ]);
     app.appendChild(intro);
@@ -511,7 +510,7 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
   function refreshStatus() {
     if (view === 'dash') { renderDash(); return; }
     var o = overall();
-    var p = $('#o-pct'); if (p) { p.textContent = o.pct + '%'; $('#o-bar').style.width = o.pct + '%'; $('#o-count').textContent = o.done + ' of ' + o.total + ' answers'; }
+    var p = $('#o-pct'); if (p) { p.textContent = o.pct + '%'; $('#o-bar').style.width = o.pct + '%'; }
     document.querySelectorAll('.rail button').forEach(function (b) { var sp = sectionProgress(b.getAttribute('data-sec')); b.querySelector('.r-pct').textContent = sp.pct + '%'; b.querySelector('.bar i').style.width = sp.pct + '%'; });
     document.querySelectorAll('[data-pill]').forEach(function (pl) {
       var parts = pl.getAttribute('data-pill').split(':'), d = localDoc(parts[0], parts[1]);
