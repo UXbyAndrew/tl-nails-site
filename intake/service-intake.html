@@ -1,0 +1,687 @@
+<title>T&amp;L Service Intake</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one centred column; the owner fills one section at a time from a section rail,
+   the admin sees summary → section bars → field matrix → answers. Zero radius, blush ground. */
+:root {
+  --bg: #FBF4F1; --surface: #FFFFFF; --soft: #F3E7E3; --ink: #3A2A2E; --muted: #7a636a; --faint: #9a868b;
+  --mauve: #A76A78; --deep: #5E3A44; --blush: #F5DCE1; --rule: rgba(58,42,46,.16); --field: rgba(58,42,46,.24);
+  --on-accent: #FFFFFF; --gold: #BE9A46;
+  --ok: #3E7A57; --ok-bg: #E4F0E8; --part: #9A6A12; --part-bg: #F6ECD8; --none-bg: transparent;
+  --serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1E1618; --surface: #29201F; --soft: #30252A; --ink: #F3E6E9; --muted: #C3AAB1; --faint: #9C858C;
+  --mauve: #D59AAA; --deep: #EBC3CD; --blush: #3A2A30; --rule: rgba(243,230,233,.14); --field: rgba(243,230,233,.26);
+  --on-accent: #1E1618; --gold: #D9B866;
+  --ok: #8FCBA5; --ok-bg: #213A2B; --part: #E2BC6A; --part-bg: #3A2F18; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1E1618; --surface: #29201F; --soft: #30252A; --ink: #F3E6E9; --muted: #C3AAB1; --faint: #9C858C;
+  --mauve: #D59AAA; --deep: #EBC3CD; --blush: #3A2A30; --rule: rgba(243,230,233,.14); --field: rgba(243,230,233,.26);
+  --on-accent: #1E1618; --gold: #D9B866;
+  --ok: #8FCBA5; --ok-bg: #213A2B; --part: #E2BC6A; --part-bg: #3A2F18; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font: 400 15px/1.6 var(--sans); padding-inline: 20px; padding-block: 0 80px; -webkit-font-smoothing: antialiased; }
+.page { max-width: 1080px; margin-inline: auto; }
+h1, h2, h3 { font-family: var(--serif); font-weight: 600; margin: 0; text-wrap: balance; line-height: 1.1; }
+p { margin: 0; }
+button, input, textarea, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--mauve); outline-offset: 2px; }
+.eyebrow { font: 600 11px/1 var(--sans); letter-spacing: .26em; text-transform: uppercase; color: var(--mauve); }
+.label { font: 600 10px/1.3 var(--sans); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Masthead */
+.mast { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 22px; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
+.wordmark { font: 700 22px/1 var(--serif); letter-spacing: .16em; text-transform: uppercase; color: var(--deep); }
+.tabs { display: flex; gap: 6px; }
+.tab { padding: 10px 16px; border: 1px solid var(--field); background: transparent; font: 600 11px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; cursor: pointer; min-height: 40px; }
+.tab[aria-selected="true"] { background: var(--deep); border-color: var(--deep); color: var(--bg); }
+.saved { font: 500 12px/1 var(--sans); color: var(--muted); min-height: 1em; }
+
+/* Owner intro */
+.intro { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 40px; align-items: end; padding-block: 44px 34px; }
+.intro h1 { font-size: clamp(38px, 6vw, 58px); letter-spacing: -.01em; margin-top: 16px; }
+.intro h1 em { color: var(--mauve); }
+.intro p { color: var(--muted); max-width: 52ch; margin-top: 16px; }
+.overall { display: grid; gap: 10px; }
+.overall-top { display: flex; justify-content: space-between; align-items: baseline; }
+.overall-top b { font: 600 34px/1 var(--serif); color: var(--deep); }
+.bar { height: 6px; background: var(--soft); position: relative; overflow: hidden; }
+.bar > i { position: absolute; inset: 0 auto 0 0; background: var(--mauve); transition: width .4s ease; }
+
+/* Owner layout */
+.fill { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 40px; align-items: start; }
+.rail { position: sticky; top: env(safe-area-inset-top, 0px); display: grid; gap: 2px; padding-top: 8px; }
+.rail button { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; text-align: left; padding: 12px 14px; border: 0; background: transparent; cursor: pointer; border-left: 2px solid transparent; }
+.rail button:hover { background: var(--soft); }
+.rail button[aria-current="true"] { background: var(--surface); border-left-color: var(--mauve); }
+.rail .r-name { font: 600 18px/1.2 var(--serif); }
+.rail .r-pct { font: 600 11px/1 var(--sans); color: var(--muted); }
+.rail .bar { grid-column: 1 / -1; height: 3px; }
+
+.sec-head { display: grid; gap: 10px; padding-bottom: 22px; border-bottom: 1px solid var(--rule); margin-bottom: 18px; }
+.sec-head h2 { font-size: 40px; }
+.sec-head p { color: var(--muted); max-width: 60ch; }
+.items { display: grid; gap: 10px; }
+.item { background: var(--surface); border: 1px solid var(--rule); }
+.item > summary { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 14px; align-items: center; padding: 16px 20px; cursor: pointer; }
+.item > summary::-webkit-details-marker { display: none; }
+.item > summary h3 { font-size: 23px; }
+.item > summary .hint { font: 500 13px/1.3 var(--sans); color: var(--muted); margin-top: 3px; }
+.chev { width: 10px; height: 10px; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); transform: rotate(45deg); transition: transform .2s; margin-top: -4px; }
+.item[open] .chev { transform: rotate(225deg); margin-top: 4px; }
+.pill { font: 600 10px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; padding: 7px 10px; white-space: nowrap; }
+.pill.done { background: var(--ok-bg); color: var(--ok); }
+.pill.part { background: var(--part-bg); color: var(--part); }
+.pill.none { border: 1px solid var(--field); color: var(--muted); }
+.pill.off { border: 1px dashed var(--field); color: var(--faint); }
+.form { display: grid; gap: 22px; padding: 6px 20px 24px; border-top: 1px solid var(--rule); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.q { display: grid; gap: 8px; min-width: 0; }
+.q > .qlabel { font: 600 14px/1.35 var(--sans); }
+.q > .qlabel small { display: block; font-weight: 400; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.q .opt { font-weight: 400; color: var(--faint); font-size: 12px; }
+input[type="text"], textarea { width: 100%; padding: 13px 14px; border: 1px solid var(--field); background: var(--bg); border-radius: 0; font-size: 15px; }
+textarea { min-height: 96px; resize: vertical; line-height: 1.55; }
+input::placeholder, textarea::placeholder { color: var(--faint); }
+input:focus, textarea:focus { outline: none; border-color: var(--mauve); }
+.choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.choice { position: relative; }
+.choice input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.choice span { display: inline-flex; align-items: center; min-height: 42px; padding: 10px 16px; border: 1px solid var(--field); font: 600 13px/1.2 var(--sans); cursor: pointer; }
+.choice input:checked + span { background: var(--mauve); border-color: var(--mauve); color: var(--on-accent); }
+.choice input:focus-visible + span { outline: 2px solid var(--mauve); outline-offset: 2px; }
+.suggest { display: inline-flex; align-self: start; align-items: center; gap: 6px; padding: 6px 10px; border: 1px dashed var(--mauve); background: transparent; color: var(--mauve); font: 600 12px/1.2 var(--sans); cursor: pointer; }
+.suggest:hover { background: var(--blush); }
+.photos { display: flex; flex-wrap: wrap; gap: 8px; }
+.photos figure { margin: 0; position: relative; width: 96px; height: 96px; background: var(--soft); }
+.photos img { width: 100%; height: 100%; object-fit: cover; }
+.photos figure button { position: absolute; top: 4px; right: 4px; width: 26px; height: 26px; border: 0; background: var(--surface); color: var(--ink); cursor: pointer; font-size: 16px; line-height: 1; }
+.upload { display: inline-flex; align-items: center; justify-content: center; width: 96px; height: 96px; border: 1px dashed var(--field); color: var(--muted); font: 600 12px/1.3 var(--sans); text-align: center; cursor: pointer; padding: 8px; }
+.upload input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.add-svc { display: grid; gap: 10px; padding: 18px 20px; border: 1px dashed var(--field); }
+.add-svc .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.add-svc input { flex: 1 1 220px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 12px 20px; border: 0; background: var(--deep); color: var(--bg); font: 600 11px/1 var(--sans); letter-spacing: .16em; text-transform: uppercase; cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--deep); border: 1px solid var(--deep); }
+.sec-foot { display: flex; justify-content: space-between; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
+.notice { padding: 16px 18px; background: var(--soft); color: var(--muted); font-size: 14px; }
+.empty { padding: 60px 0; text-align: center; color: var(--muted); }
+.empty h2 { font-size: 34px; color: var(--ink); margin-bottom: 10px; }
+
+/* Admin dashboard */
+.dash { display: grid; gap: 44px; padding-top: 36px; }
+.summary { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 36px; align-items: center; }
+.ring { width: 150px; height: 150px; }
+.kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.kpi { border-top: 1px solid var(--rule); padding-top: 14px; }
+.kpi b { display: block; font: 600 32px/1 var(--serif); color: var(--deep); margin-bottom: 8px; }
+.kpi span { color: var(--muted); font-size: 13px; }
+.panel h2 { font-size: 30px; margin-bottom: 6px; }
+.panel > p { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
+.sbars { display: grid; gap: 12px; }
+.sbar { display: grid; grid-template-columns: 170px minmax(0, 1fr) 90px; gap: 16px; align-items: center; }
+.sbar .n { font: 600 17px/1.2 var(--serif); }
+.sbar .track { height: 14px; background: var(--soft); position: relative; }
+.sbar .track i { position: absolute; inset: 0 auto 0 0; background: var(--mauve); border-radius: 0 3px 3px 0; }
+.sbar .track i[data-full] { background: var(--ok); }
+.sbar .v { font: 600 13px/1 var(--sans); text-align: right; }
+.sbar .v small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; margin-top: 3px; }
+.matrix-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.matrix th, .matrix td { padding: 7px 8px; border-bottom: 1px solid var(--rule); text-align: left; white-space: nowrap; }
+.matrix thead th { font: 600 10px/1.2 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.matrix tbody th { font: 600 15px/1.2 var(--serif); }
+.matrix .grp th { font: 600 11px/1 var(--sans); letter-spacing: .2em; text-transform: uppercase; color: var(--mauve); padding-top: 18px; }
+.cell { display: inline-block; width: 16px; height: 16px; border: 1.5px solid var(--field); vertical-align: middle; }
+.cell.y { background: var(--mauve); border-color: var(--mauve); }
+.cell.na { border-style: dashed; background: transparent; opacity: .55; }
+.legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-bottom: 12px; align-items: center; }
+.legend span { display: inline-flex; gap: 6px; align-items: center; }
+.answers-head { display: flex; justify-content: space-between; align-items: end; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+.answers-head select { padding: 10px 12px; border: 1px solid var(--field); background: var(--surface); border-radius: 0; }
+.ans { display: grid; gap: 10px; }
+.ans article { background: var(--surface); border: 1px solid var(--rule); padding: 18px 20px; display: grid; gap: 12px; }
+.ans article header { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.ans article h3 { font-size: 22px; }
+.ans dl { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 8px 16px; margin: 0; font-size: 14px; }
+.ans dt { color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: .06em; padding-top: 2px; }
+.ans dd { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ans dd.missing { color: var(--faint); font-style: italic; }
+.ans .thumbs { display: flex; gap: 6px; flex-wrap: wrap; }
+.ans .thumbs img { width: 64px; height: 64px; object-fit: cover; }
+.tip { position: fixed; pointer-events: none; z-index: 20; background: var(--ink); color: var(--bg); font: 500 12px/1.4 var(--sans); padding: 7px 10px; max-width: 240px; }
+
+@media (max-width: 820px) {
+  .intro, .fill, .summary { grid-template-columns: 1fr; }
+  .intro { gap: 24px; padding-block: 30px 24px; }
+  .rail { position: static; display: flex; overflow-x: auto; gap: 6px; padding-bottom: 6px; }
+  .rail button { flex: none; min-width: 150px; border-left: 0; border-bottom: 2px solid transparent; }
+  .rail button[aria-current="true"] { border-bottom-color: var(--mauve); }
+  .row2 { grid-template-columns: 1fr; }
+  .sec-head h2 { font-size: 32px; }
+  .kpis { grid-template-columns: 1fr 1fr; }
+  .sbar { grid-template-columns: 110px minmax(0, 1fr) 64px; gap: 10px; }
+  .ans dl { grid-template-columns: 1fr; gap: 2px; }
+  .ans dd { margin-bottom: 8px; }
+  .item > summary { padding: 14px 16px; }
+  .form { padding-inline: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="page">
+  <header class="mast">
+    <span class="wordmark">T&amp;L Nails</span>
+    <div class="tabs" id="tabs" hidden>
+      <button class="tab" id="tab-dash" type="button" aria-selected="true">Dashboard</button>
+      <button class="tab" id="tab-form" type="button" aria-selected="false">Owner's form</button>
+    </div>
+    <span class="saved" id="saved" aria-live="polite"></span>
+  </header>
+  <main id="app">
+    <div class="empty"><h2>Opening your service details…</h2><p>This takes a moment the first time.</p></div>
+  </main>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------- Structure of the questionnaire ----------
+  var SECTIONS = [
+    { key: 'basics', title: 'Salon basics', blurb: 'A few details about both salons that the website needs. Short answers are perfect.' },
+    { key: 'manicures', title: 'Manicures', blurb: 'For each manicure, confirm the price and time, then describe it the way you would to a new client.' },
+    { key: 'pedicures', title: 'Pedicures', blurb: 'For each pedicure, confirm the price and time, then describe it the way you would to a new client.' },
+    { key: 'enhancements', title: 'Enhancements', blurb: 'Acrylic, dip, Gel-X and removals. Mention length or shape pricing wherever it applies.' },
+    { key: 'nail-art', title: 'Nail art', blurb: 'Designs, chrome, rhinestones and charms. Per-nail pricing is fine.' },
+    { key: 'lashes', title: 'Lashes', blurb: 'Lash sets and fills.' },
+    { key: 'waxing', title: 'Waxing', blurb: 'Brows, face and body waxing.' },
+    { key: 'addons', title: 'Add-ons', blurb: 'Extras clients can add to any service. Mark the ones you offer and confirm each price.' }
+  ];
+  var LOCS = ['Kennedy Blvd', 'Davis Islands'];
+
+  // Service questions. `req` ones count toward completion.
+  var SVC_FIELDS = [
+    { k: 'offered', label: 'Do you offer this service?', type: 'choice', opts: ['Yes', 'No, remove it'], req: true, col: 'Offered' },
+    { k: 'price', label: 'Starting price', help: 'Include a range or extras if needed, e.g. "$45 · long length +$10".', type: 'text', req: true, sug: 'price', col: 'Price' },
+    { k: 'duration', label: 'How long does it take?', help: 'In minutes, roughly.', type: 'text', req: true, sug: 'duration', col: 'Time' },
+    { k: 'locations', label: 'Which salons offer it?', type: 'multi', opts: LOCS, req: true, col: 'Where' },
+    { k: 'short', label: 'One line for the menu', help: 'About 10 words. This shows under the name on the menu page.', type: 'text', req: true, sug: 'short', col: 'Menu line' },
+    { k: 'desc', label: 'Describe it to a new client', help: '2–4 sentences. What makes it special? Who is it for?', type: 'textarea', req: true, col: 'Description' },
+    { k: 'included', label: "What's included?", help: 'One step per line, e.g. "Warm soak", "Cuticle care".', type: 'textarea', req: true, col: 'Included' },
+    { k: 'addons', label: 'Add-ons that go well with it', type: 'addons', col: 'Add-ons' },
+    { k: 'notes', label: 'Anything clients should know?', help: 'Prep, aftercare, how often to come back.', type: 'textarea' },
+    { k: 'photos', label: 'Photos of this service', help: 'Your best 1–4 photos. Phone photos are fine.', type: 'photos', col: 'Photos' }
+  ];
+  var BASIC_FIELDS = [
+    { k: 'hoursKennedy', label: 'Kennedy Blvd hours', help: 'Every day of the week, including closed days.', type: 'textarea', req: true, ph: 'Mon–Thu 10am–7pm\nFri 9am–7pm\nSat 9am–6pm\nSun 11am–5pm' },
+    { k: 'hoursDavis', label: 'Davis Islands hours', help: 'Every day of the week, including closed days. Our current list is missing Friday.', type: 'textarea', req: true, ph: 'Mon closed\nTue–Thu 10am–7pm\nFri ?\nSat 9am–6pm\nSun 11am–5pm' },
+    { k: 'payments', label: 'Payment methods you accept', type: 'text', req: true, ph: 'Cash, all major cards, Apple Pay…' },
+    { k: 'giftCards', label: 'Do you sell gift cards?', type: 'choice', opts: ['Yes, in salon', 'Yes, in salon and online', 'No'], req: true },
+    { k: 'policy', label: 'Late arrival or cancellation policy', help: 'Write "none" if you do not have one.', type: 'textarea', req: true },
+    { k: 'walkins', label: 'Walk-ins', type: 'choice', opts: ['Always welcome', 'When we have space', 'Appointments only'], req: true },
+    { k: 'facebook', label: 'Facebook page link', help: 'Write "none" if you do not have one.', type: 'text', req: true, ph: 'facebook.com/…' },
+    { k: 'yelp', label: 'Yelp page link(s)', help: 'One for each salon if they are separate.', type: 'textarea', req: true, ph: 'yelp.com/biz/…' },
+    { k: 'extra', label: 'Anything else the website should say?', type: 'textarea' }
+  ];
+  var ADDON_FIELDS = [
+    { k: 'offered', label: 'Do you offer this add-on?', type: 'choice', opts: ['Yes', 'No, remove it'], req: true },
+    { k: 'price', label: 'Price', type: 'text', req: true, sug: 'price' }
+  ];
+
+  // ---------- State ----------
+  var db = null, assets = null, isOwner = false, canWrite = true;
+  var data = { services: {}, addons: {}, basics: null };
+  var loaded = { services: false, addons: false, basics: false };
+  var view = 'form', current = 'basics', built = false;
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var el = function (tag, attrs, kids) {
+    var n = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      var v = attrs[k];
+      if (v == null || v === false) return;
+      if (k === 'text') n.textContent = v;
+      else if (k === 'class') n.className = v;
+      else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v === true ? '' : v);
+    });
+    (kids || []).forEach(function (c) { if (c != null) n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+    return n;
+  };
+  var pref = function (k, v) { try { if (v === undefined) return localStorage.getItem('tl-intake-' + k); localStorage.setItem('tl-intake-' + k, v); } catch (e) { return null; } };
+
+  // ---------- Completion ----------
+  function filled(v) { return Array.isArray(v) ? v.length > 0 : v != null && String(v).trim() !== ''; }
+  function fieldsFor(kind) { return kind === 'svc' ? SVC_FIELDS : kind === 'addon' ? ADDON_FIELDS : BASIC_FIELDS; }
+  function progress(kind, doc) {
+    var a = (doc && doc.a) || {}, req = fieldsFor(kind).filter(function (f) { return f.req; });
+    if (kind !== 'basic' && a.offered && a.offered !== 'Yes') return { done: req.length, total: req.length, off: true };
+    var d = req.filter(function (f) { return filled(a[f.k]); }).length;
+    return { done: d, total: req.length, off: false };
+  }
+  function itemsIn(key) {
+    if (key === 'basics') return data.basics ? [{ kind: 'basic', id: 'basics', doc: data.basics }] : [];
+    if (key === 'addons') return sorted(data.addons).map(function (d) { return { kind: 'addon', id: d.id, doc: d }; });
+    return sorted(data.services).filter(function (d) { return d.cat === key; }).map(function (d) { return { kind: 'svc', id: d.id, doc: d }; });
+  }
+  function sorted(map) { return Object.keys(map).map(function (k) { return map[k]; }).sort(function (a, b) { return (a.order || 999) - (b.order || 999) || String(a.name).localeCompare(String(b.name)); }); }
+  function sectionProgress(key) {
+    var t = 0, d = 0, items = itemsIn(key), doneItems = 0;
+    items.forEach(function (it) { var p = progress(it.kind, it.doc); t += p.total; d += p.done; if (p.done === p.total) doneItems++; });
+    return { done: d, total: t, pct: t ? Math.round(d / t * 100) : 0, items: items.length, doneItems: doneItems };
+  }
+  function overall() {
+    var t = 0, d = 0;
+    SECTIONS.forEach(function (s) { var p = sectionProgress(s.key); t += p.total; d += p.done; });
+    return { done: d, total: t, pct: t ? Math.round(d / t * 100) : 0 };
+  }
+  function statusOf(p) { return p.off ? ['off', 'Not offered'] : p.done === p.total ? ['done', 'Done'] : p.done ? ['part', p.done + ' of ' + p.total] : ['none', 'Not started']; }
+
+  // ---------- Saving (one write at a time per document, coalesced) ----------
+  var queues = {}, savedTimer;
+  function docRef(kind, id) { return db.doc(kind === 'svc' ? 'services/' + id : kind === 'addon' ? 'addons/' + id : 'sections/basics'); }
+  function localDoc(kind, id) { return kind === 'svc' ? data.services[id] : kind === 'addon' ? data.addons[id] : data.basics; }
+  function save(kind, id, key, value) {
+    var d = localDoc(kind, id);
+    if (d) { d.a = Object.assign({}, d.a || {}); d.a[key] = value; }
+    refreshStatus();
+    if (!db || !canWrite) return;
+    var q = queues[kind + id] || (queues[kind + id] = { patch: {}, busy: false });
+    q.patch[key] = value;
+    flush(kind, id, q);
+  }
+  function flush(kind, id, q) {
+    if (q.busy || !Object.keys(q.patch).length) return;
+    var patch = q.patch; q.patch = {}; q.busy = true;
+    var ts = new Date().toISOString(), d = localDoc(kind, id);
+    if (d) d.updatedAt = ts;
+    setSaved('Saving…');
+    docRef(kind, id).update({ a: patch, updatedAt: ts }).then(function () {
+      q.busy = false; setSaved('All changes saved'); flush(kind, id, q);
+    }, function (e) {
+      q.busy = false;
+      if (e && e.code === 'invalid_argument') { canWrite = false; setSaved('You can view this form but not change it. Ask for edit access.'); }
+      else { setSaved('Could not save. Check your connection; your last change will retry.'); Object.assign(q.patch, patch); setTimeout(function () { flush(kind, id, q); }, 3000); }
+    });
+  }
+  function setSaved(t) { var s = $('#saved'); s.textContent = t; clearTimeout(savedTimer); if (t === 'All changes saved') savedTimer = setTimeout(function () { s.textContent = 'Saved'; }, 2500); }
+
+  // ---------- Owner form ----------
+  function renderForm() {
+    var app = $('#app'); app.textContent = '';
+    var o = overall();
+    var intro = el('section', { class: 'intro' }, [
+      el('div', null, [
+        el('div', { class: 'eyebrow', text: 'Your new website' }),
+        el('h1', null, ['Tell us about ', el('em', { text: 'your services' })]),
+        el('p', { text: 'Each service gets its own page on the new site. Fill in what you can, in any order. Everything saves as you type, so you can stop and come back anytime.' })
+      ]),
+      el('div', { class: 'overall' }, [
+        el('div', { class: 'overall-top' }, [el('span', { class: 'label', text: 'All done' }), el('b', { class: 'num', id: 'o-pct', text: o.pct + '%' })]),
+        el('div', { class: 'bar' }, [el('i', { id: 'o-bar', style: 'width:' + o.pct + '%' })]),
+        el('span', { class: 'label num', id: 'o-count', text: o.done + ' of ' + o.total + ' answers' })
+      ])
+    ]);
+    app.appendChild(intro);
+    if (!canWrite) app.appendChild(el('p', { class: 'notice', text: 'You can read this form but not change it. Ask for edit access to fill it in.' }));
+    var rail = el('nav', { class: 'rail', 'aria-label': 'Sections' });
+    SECTIONS.forEach(function (s) {
+      var p = sectionProgress(s.key);
+      rail.appendChild(el('button', { type: 'button', 'data-sec': s.key, 'aria-current': s.key === current ? 'true' : 'false', onclick: function () { current = s.key; pref('sec', s.key); renderForm(); scrollTo({ top: 0 }); } }, [
+        el('span', { class: 'r-name', text: s.title }),
+        el('span', { class: 'r-pct num', text: p.pct + '%' }),
+        el('span', { class: 'bar' }, [el('i', { style: 'width:' + p.pct + '%' })])
+      ]));
+    });
+    var sec = SECTIONS.filter(function (s) { return s.key === current; })[0];
+    var body = el('section', { 'aria-labelledby': 'sec-title' }, [
+      el('div', { class: 'sec-head' }, [el('div', { class: 'eyebrow', text: 'Section ' + (SECTIONS.indexOf(sec) + 1) + ' of ' + SECTIONS.length }), el('h2', { id: 'sec-title', text: sec.title }), el('p', { text: sec.blurb })])
+    ]);
+    var items = itemsIn(sec.key), list = el('div', { class: 'items' });
+    if (!items.length) list.appendChild(el('p', { class: 'notice', text: 'Nothing here yet.' }));
+    items.forEach(function (it, i) { list.appendChild(itemCard(it, items.length === 1 || i === 0 && sec.key === 'basics')); });
+    body.appendChild(list);
+    if (sec.key !== 'basics' && sec.key !== 'addons' && canWrite) body.appendChild(addService(sec.key));
+    var idx = SECTIONS.indexOf(sec);
+    var foot = el('div', { class: 'sec-foot' }, [
+      idx > 0 ? el('button', { class: 'btn ghost', type: 'button', text: '← ' + SECTIONS[idx - 1].title, onclick: function () { current = SECTIONS[idx - 1].key; renderForm(); scrollTo({ top: 0 }); } }) : el('span'),
+      idx < SECTIONS.length - 1 ? el('button', { class: 'btn', type: 'button', text: 'Next: ' + SECTIONS[idx + 1].title + ' →', onclick: function () { current = SECTIONS[idx + 1].key; renderForm(); scrollTo({ top: 0 }); } }) : el('span', { class: 'label', text: 'That is the last section. Thank you!' })
+    ]);
+    body.appendChild(foot);
+    app.appendChild(el('div', { class: 'fill' }, [rail, body]));
+    built = true;
+  }
+
+  function itemCard(it, open) {
+    var d = it.doc, p = progress(it.kind, d), st = statusOf(p);
+    var title = it.kind === 'basic' ? 'Both salons' : d.name;
+    var hint = it.kind === 'svc' && d.sug ? 'Current menu: ' + [d.sug.price, d.sug.duration && d.sug.duration + ' min'].filter(Boolean).join(' · ') : it.kind === 'addon' && d.sug ? 'Current menu: ' + d.sug.price : '';
+    var det = el('details', { class: 'item', 'data-item': it.kind + ':' + it.id, open: open || null }, [
+      el('summary', null, [
+        el('div', null, [el('h3', { text: title }), hint ? el('div', { class: 'hint', text: hint }) : null]),
+        el('span', { class: 'pill ' + st[0], 'data-pill': it.kind + ':' + it.id, text: st[1] }),
+        el('span', { class: 'chev', 'aria-hidden': 'true' })
+      ])
+    ]);
+    var formBuilt = false;
+    var build = function () {
+      if (formBuilt) return; formBuilt = true;
+      var f = el('div', { class: 'form' });
+      var defs = fieldsFor(it.kind);
+      defs.forEach(function (def) { f.appendChild(question(it, def)); });
+      det.appendChild(f);
+      applyOffered(it, det);
+    };
+    det.addEventListener('toggle', function () { if (det.open) build(); });
+    if (open) build();
+    return det;
+  }
+
+  function applyOffered(it, root) {
+    if (it.kind === 'basic') return;
+    var off = ((localDoc(it.kind, it.id) || {}).a || {}).offered;
+    root.querySelectorAll('[data-q]').forEach(function (q) { if (q.getAttribute('data-q') !== 'offered') q.hidden = !!off && off !== 'Yes'; });
+  }
+
+  var timers = {};
+  function question(it, def) {
+    var a = (it.doc.a) || {}, v = a[def.k], id = 'q-' + it.kind + '-' + it.id + '-' + def.k;
+    var q = el('div', { class: 'q', 'data-q': def.k });
+    var lab = el(def.type === 'choice' || def.type === 'multi' || def.type === 'addons' || def.type === 'photos' ? 'div' : 'label', { class: 'qlabel', for: def.type === 'text' || def.type === 'textarea' ? id : null, id: id + '-l' },
+      [def.label, def.req ? null : el('span', { class: 'opt', text: '  (optional)' }), def.help ? el('small', { text: def.help }) : null]);
+    q.appendChild(lab);
+    var ro = !canWrite;
+    if (def.type === 'text' || def.type === 'textarea') {
+      var input = def.type === 'text' ? el('input', { type: 'text', id: id, placeholder: def.ph || '', disabled: ro }) : el('textarea', { id: id, placeholder: def.ph || '', disabled: ro, rows: def.k === 'included' ? 5 : 4 });
+      input.value = v || '';
+      input.addEventListener('input', function () {
+        clearTimeout(timers[id]); setSaved('Editing…');
+        timers[id] = setTimeout(function () { save(it.kind, it.id, def.k, input.value); }, 700);
+      });
+      input.addEventListener('blur', function () { if (timers[id]) { clearTimeout(timers[id]); timers[id] = 0; if (input.value !== ((localDoc(it.kind, it.id).a || {})[def.k] || '')) save(it.kind, it.id, def.k, input.value); } });
+      input.setAttribute('data-bind', it.kind + ':' + it.id + ':' + def.k);
+      q.appendChild(input);
+      var s = def.sug && it.doc.sug && it.doc.sug[def.sug];
+      if (s && !ro) {
+        var shown = def.sug === 'duration' ? s + ' min' : s;
+        q.appendChild(el('button', { class: 'suggest', type: 'button', text: 'Use current: ' + shown, onclick: function () { input.value = def.sug === 'duration' ? s + ' min' : s; save(it.kind, it.id, def.k, input.value); input.focus(); } }));
+      }
+    } else if (def.type === 'choice' || def.type === 'multi' || def.type === 'addons') {
+      var opts = def.type === 'addons' ? sorted(data.addons).filter(function (x) { var o = (x.a || {}).offered; return !o || o === 'Yes'; }).map(function (x) { return x.name; }) : def.opts;
+      var box = el('div', { class: 'choices', role: def.type === 'choice' ? 'radiogroup' : 'group', 'aria-labelledby': id + '-l' });
+      opts.forEach(function (o) {
+        var checked = def.type === 'choice' ? v === o : Array.isArray(v) && v.indexOf(o) > -1;
+        var inp = el('input', { type: def.type === 'choice' ? 'radio' : 'checkbox', name: id, value: o, checked: checked, disabled: ro });
+        inp.addEventListener('change', function () {
+          var val = def.type === 'choice' ? o : Array.prototype.slice.call(box.querySelectorAll('input:checked')).map(function (x) { return x.value; });
+          save(it.kind, it.id, def.k, val);
+          if (def.k === 'offered') applyOffered(it, q.parentNode);
+        });
+        box.appendChild(el('label', { class: 'choice' }, [inp, el('span', { text: o })]));
+      });
+      q.appendChild(box);
+    } else if (def.type === 'photos') {
+      q.appendChild(photoField(it, def, v || []));
+    }
+    return q;
+  }
+
+  function photoField(it, def, ids) {
+    var wrap = el('div', { class: 'photos' });
+    var draw = function (list) {
+      wrap.textContent = '';
+      list.forEach(function (pid) {
+        wrap.appendChild(el('figure', null, [
+          el('img', { src: '/_blob/' + pid, alt: 'Uploaded photo', loading: 'lazy' }),
+          assets && canWrite ? el('button', { type: 'button', 'aria-label': 'Remove photo', text: '×', onclick: function () {
+            var next = list.filter(function (x) { return x !== pid; });
+            save(it.kind, it.id, def.k, next); draw(next);
+            assets.delete(pid).catch(function () {});
+          } }) : null
+        ]));
+      });
+      if (assets && canWrite && list.length < 6) {
+        var input = el('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp', multiple: true });
+        var lab = el('label', { class: 'upload' }, [input, el('span', { text: '+ Add photos' })]);
+        input.addEventListener('change', function () {
+          var files = Array.prototype.slice.call(input.files).slice(0, 6 - list.length);
+          if (!files.length) return;
+          lab.lastChild.textContent = 'Uploading…';
+          var out = list.slice();
+          files.reduce(function (p, f) { return p.then(function () { return assets.upload(f).then(function (r) { out.push(r.id); }); }); }, Promise.resolve())
+            .then(function () { save(it.kind, it.id, def.k, out); draw(out); },
+              function (e) { setSaved(e && e.code === 'too_large' ? 'That photo is over 20 MB. Try a smaller one.' : 'A photo could not upload. Try again, or send it by email.'); save(it.kind, it.id, def.k, out); draw(out); });
+        });
+        wrap.appendChild(lab);
+      }
+      if (!assets) wrap.appendChild(el('p', { class: 'notice', text: 'Photo uploads are not available in this view. Text them to your web designer instead.' }));
+    };
+    draw(ids.slice());
+    return wrap;
+  }
+
+  function addService(cat) {
+    var name = el('input', { type: 'text', id: 'add-' + cat, placeholder: 'Service name, e.g. "Jelly Pedicure"' });
+    var btn = el('button', { class: 'btn', type: 'button', text: 'Add service', onclick: function () {
+      var n = name.value.trim(); if (!n || !db) return;
+      var id = cat + '-' + n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) + '-' + Date.now().toString(36);
+      var doc = { cat: cat, name: n, order: 900, custom: true, a: { offered: 'Yes' }, updatedAt: new Date().toISOString() };
+      btn.disabled = true;
+      db.doc('services/' + id).set(doc).then(function () { data.services[id] = Object.assign({ id: id }, doc); name.value = ''; btn.disabled = false; renderForm(); var d = document.querySelector('[data-item="svc:' + id + '"]'); if (d) { d.open = true; d.scrollIntoView({ block: 'center' }); } },
+        function () { btn.disabled = false; setSaved('Could not add that service. Try again.'); });
+    } });
+    return el('div', { class: 'add-svc' }, [el('span', { class: 'label', text: 'Missing a service?' }), el('div', { class: 'row' }, [el('label', { class: 'sr-only', for: 'add-' + cat, text: 'New service name', style: 'position:absolute;left:-9999px' }), name, btn])]);
+  }
+
+  function refreshStatus() {
+    if (view === 'dash') { renderDash(); return; }
+    var o = overall();
+    var p = $('#o-pct'); if (p) { p.textContent = o.pct + '%'; $('#o-bar').style.width = o.pct + '%'; $('#o-count').textContent = o.done + ' of ' + o.total + ' answers'; }
+    document.querySelectorAll('.rail button').forEach(function (b) { var sp = sectionProgress(b.getAttribute('data-sec')); b.querySelector('.r-pct').textContent = sp.pct + '%'; b.querySelector('.bar i').style.width = sp.pct + '%'; });
+    document.querySelectorAll('[data-pill]').forEach(function (pl) {
+      var parts = pl.getAttribute('data-pill').split(':'), d = localDoc(parts[0], parts[1]);
+      if (!d) return; var st = statusOf(progress(parts[0], d)); pl.className = 'pill ' + st[0]; pl.textContent = st[1];
+    });
+  }
+
+  // Apply other viewers' changes without disturbing the field being typed in.
+  function patchInputs() {
+    document.querySelectorAll('[data-bind]').forEach(function (inp) {
+      if (inp === document.activeElement || timers[inp.id]) return;
+      var parts = inp.getAttribute('data-bind').split(':'), d = localDoc(parts[0], parts[1]);
+      var v = ((d && d.a) || {})[parts[2]] || '';
+      if (inp.value !== v) inp.value = v;
+    });
+  }
+
+  // ---------- Admin dashboard ----------
+  var tip = $('#tip');
+  function showTip(e, text) { tip.textContent = text; tip.hidden = false; var x = Math.min(e.clientX + 14, innerWidth - 250), y = e.clientY + 14; tip.style.left = x + 'px'; tip.style.top = y + 'px'; }
+  function hideTip() { tip.hidden = true; }
+  function withTip(node, text) { node.addEventListener('mousemove', function (e) { showTip(e, text); }); node.addEventListener('mouseleave', hideTip); node.setAttribute('aria-label', text); return node; }
+
+  var ansSection = pref('ans') || 'manicures';
+  function renderDash() {
+    var app = $('#app'); app.textContent = '';
+    var o = overall(), svcs = sorted(data.services), offered = 0, svcDone = 0, last = '';
+    svcs.forEach(function (s) { var p = progress('svc', s); if (!p.off) offered++; if (p.done === p.total) svcDone++; if (s.updatedAt > last) last = s.updatedAt; });
+    [data.basics].concat(sorted(data.addons)).forEach(function (d) { if (d && d.updatedAt > last) last = d.updatedAt; });
+    var photos = svcs.reduce(function (n, s) { return n + (((s.a || {}).photos || []).length); }, 0);
+
+    // Ring
+    var R = 62, C = 2 * Math.PI * R, ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', '0 0 150 150'); svg.setAttribute('class', 'ring'); svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', 'Overall ' + o.pct + '% complete');
+    var mk = function (t, a) { var n = document.createElementNS(ns, t); Object.keys(a).forEach(function (k) { n.setAttribute(k, a[k]); }); return n; };
+    svg.appendChild(mk('circle', { cx: 75, cy: 75, r: R, fill: 'none', 'stroke-width': 12, style: 'stroke:var(--soft)' }));
+    if (o.pct > 0) svg.appendChild(mk('circle', { cx: 75, cy: 75, r: R, fill: 'none', 'stroke-width': 12, 'stroke-linecap': 'round', 'stroke-dasharray': (C * o.pct / 100) + ' ' + C, transform: 'rotate(-90 75 75)', style: 'stroke:' + (o.pct === 100 ? 'var(--ok)' : 'var(--mauve)') }));
+    var t1 = mk('text', { x: 75, y: 80, 'text-anchor': 'middle', 'font-family': 'Cormorant Garamond, Georgia, serif', 'font-weight': 600, 'font-size': 38, style: 'fill:var(--ink)' }); t1.textContent = o.pct + '%'; svg.appendChild(t1);
+    var t2 = mk('text', { x: 75, y: 101, 'text-anchor': 'middle', 'font-family': 'Manrope, system-ui, sans-serif', 'font-weight': 600, 'font-size': 9, 'letter-spacing': '1.5', style: 'fill:var(--muted)' }); t2.textContent = 'COMPLETE'; svg.appendChild(t2);
+
+    var dash = el('div', { class: 'dash' });
+    dash.appendChild(el('section', { class: 'summary', 'aria-label': 'Summary' }, [svg, el('div', null, [
+      el('div', { class: 'eyebrow', text: 'Service intake · live' }),
+      el('h1', { style: 'font-size:clamp(32px,4.5vw,46px);margin:12px 0 22px', text: o.done + ' of ' + o.total + ' answers in' }),
+      el('div', { class: 'kpis' }, [
+        el('div', { class: 'kpi' }, [el('b', { class: 'num', text: svcDone + ' / ' + svcs.length }), el('span', { text: 'services fully answered' })]),
+        el('div', { class: 'kpi' }, [el('b', { class: 'num', text: String(photos) }), el('span', { text: 'photos uploaded' })]),
+        el('div', { class: 'kpi' }, [el('b', { class: 'num', text: last ? ago(last) : '—' }), el('span', { text: last ? 'since the last answer' : 'no answers yet' })])
+      ])
+    ])]));
+
+    // Section bars
+    var bars = el('div', { class: 'sbars' });
+    SECTIONS.forEach(function (s) {
+      var p = sectionProgress(s.key);
+      var tr = el('div', { class: 'track' }, [el('i', { style: 'width:' + Math.max(p.pct, p.pct ? 1 : 0) + '%', 'data-full': p.pct === 100 ? '' : null })]);
+      withTip(tr, s.title + ': ' + p.done + ' of ' + p.total + ' answers · ' + p.doneItems + ' of ' + p.items + ' items complete');
+      bars.appendChild(el('div', { class: 'sbar' }, [el('span', { class: 'n', text: s.title }), tr, el('span', { class: 'v num' }, [p.pct + '%', el('small', { text: p.doneItems + '/' + p.items + ' done' })])]));
+    });
+    dash.appendChild(el('section', { class: 'panel' }, [el('h2', { text: 'Completion by section' }), el('p', { text: 'Share of required answers filled in. Services marked "not offered" count as complete.' }), bars]));
+
+    // Field matrix
+    var cols = SVC_FIELDS.filter(function (f) { return f.col; });
+    var head = el('tr', null, [el('th', { text: 'Service' })].concat(cols.map(function (c) { return el('th', { text: c.col + (c.req ? '' : ' *') }); })).concat([el('th', { text: 'Status' })]));
+    var tb = el('tbody');
+    SECTIONS.filter(function (s) { return s.key !== 'basics' && s.key !== 'addons'; }).forEach(function (s) {
+      tb.appendChild(el('tr', { class: 'grp' }, [el('th', { colspan: cols.length + 2, text: s.title })]));
+      itemsIn(s.key).forEach(function (it) {
+        var a = it.doc.a || {}, p = progress('svc', it.doc), st = statusOf(p);
+        var row = el('tr', null, [el('th', { scope: 'row', text: it.doc.name })]);
+        cols.forEach(function (c) {
+          var has = filled(a[c.k]), na = p.off && c.k !== 'offered';
+          var cell = el('span', { class: 'cell' + (na ? ' na' : has ? ' y' : '') });
+          withTip(cell, it.doc.name + ' · ' + c.col + ': ' + (na ? 'not needed (not offered)' : has ? preview(a[c.k]) : 'missing'));
+          row.appendChild(el('td', null, [cell]));
+        });
+        row.appendChild(el('td', null, [el('span', { class: 'pill ' + st[0], text: st[1] })]));
+        tb.appendChild(row);
+      });
+    });
+    dash.appendChild(el('section', { class: 'panel' }, [
+      el('h2', { text: 'Service fields' }), el('p', { text: 'Every service against the answers its page needs. Hover a square to see the answer.' }),
+      el('div', { class: 'legend' }, [
+        el('span', null, [el('span', { class: 'cell y' }), 'Answered']), el('span', null, [el('span', { class: 'cell' }), 'Missing']),
+        el('span', null, [el('span', { class: 'cell na' }), 'Not needed']), el('span', { text: '* optional' })
+      ]),
+      el('div', { class: 'matrix-wrap' }, [el('table', { class: 'matrix' }, [el('thead', null, [head]), tb])])
+    ]));
+
+    // Answers
+    var sel = el('select', { id: 'ans-sec', 'aria-label': 'Section to show' }, SECTIONS.map(function (s) { return el('option', { value: s.key, text: s.title, selected: s.key === ansSection }); }));
+    sel.addEventListener('change', function () { ansSection = sel.value; pref('ans', sel.value); renderDash(); });
+    var copyBtn = el('button', { class: 'btn ghost', type: 'button', text: 'Copy all answers (JSON)', onclick: function () {
+      var dump = { basics: data.basics && data.basics.a, services: sorted(data.services).map(function (s) { return { id: s.id, category: s.cat, name: s.name, answers: s.a || {} }; }), addons: sorted(data.addons).map(function (x) { return { id: x.id, name: x.name, answers: x.a || {} }; }) };
+      var txt = JSON.stringify(dump, null, 2);
+      navigator.clipboard.writeText(txt).then(function () { copyBtn.textContent = 'Copied'; setTimeout(function () { copyBtn.textContent = 'Copy all answers (JSON)'; }, 2000); }, function () { copyBtn.textContent = 'Copy blocked here'; });
+    } });
+    var ans = el('div', { class: 'ans' });
+    itemsIn(ansSection).forEach(function (it) {
+      var a = it.doc.a || {}, pr = progress(it.kind, it.doc), st = statusOf(pr);
+      var dl = el('dl');
+      fieldsFor(it.kind).forEach(function (f) {
+        var v = a[f.k];
+        if (f.type === 'photos') {
+          dl.appendChild(el('dt', { text: 'Photos' }));
+          dl.appendChild(filled(v) ? el('dd', null, [el('div', { class: 'thumbs' }, v.map(function (pid) { return el('img', { src: '/_blob/' + pid, alt: 'Photo for ' + (it.doc.name || 'service'), loading: 'lazy' }); }))]) : el('dd', { class: 'missing', text: 'None yet' }));
+          return;
+        }
+        dl.appendChild(el('dt', { text: f.col || f.label.replace(/\?$/, '') }));
+        dl.appendChild(filled(v) ? el('dd', { text: Array.isArray(v) ? v.join(', ') : String(v) }) : el('dd', { class: 'missing', text: pr.off ? 'Not needed' : f.req ? 'Missing' : '—' }));
+      });
+      ans.appendChild(el('article', null, [el('header', null, [el('h3', { text: it.kind === 'basic' ? 'Salon basics' : it.doc.name + (it.doc.custom ? ' (added by owner)' : '') }), el('span', { class: 'pill ' + st[0], text: st[1] })]), dl]));
+    });
+    dash.appendChild(el('section', { class: 'panel' }, [
+      el('div', { class: 'answers-head' }, [el('div', null, [el('h2', { text: 'Answers' }), el('p', { style: 'color:var(--muted);font-size:14px', text: 'Everything the owner has entered, section by section.' })]), el('div', { style: 'display:flex;gap:8px;flex-wrap:wrap' }, [sel, copyBtn])]),
+      ans
+    ]));
+    app.appendChild(dash);
+  }
+  function preview(v) { var s = Array.isArray(v) ? (typeof v[0] === 'string' && v[0].length > 20 ? v.length + ' photos' : v.join(', ')) : String(v); return s.length > 90 ? s.slice(0, 90) + '…' : s; }
+  function ago(iso) {
+    var s = (Date.now() - Date.parse(iso)) / 1000;
+    if (s < 90) return 'just now'; if (s < 5400) return Math.round(s / 60) + ' min'; if (s < 129600) return Math.round(s / 3600) + ' hr'; return Math.round(s / 86400) + ' days';
+  }
+
+  // ---------- Views ----------
+  function show(v) {
+    view = v; pref('view', v);
+    $('#tab-dash').setAttribute('aria-selected', v === 'dash'); $('#tab-form').setAttribute('aria-selected', v === 'form');
+    v === 'dash' ? renderDash() : renderForm();
+  }
+  function ready() { return loaded.services && loaded.addons && loaded.basics; }
+  function onData(structural) {
+    if (!ready()) return;
+    if (!data.basics && !Object.keys(data.services).length) {
+      $('#app').innerHTML = '';
+      $('#app').appendChild(el('div', { class: 'empty' }, [el('h2', { text: 'The questions are being set up' }), el('p', { text: 'Check back in a few minutes.' })]));
+      return;
+    }
+    if (!built || view === 'dash') { show(view); return; }
+    if (structural) { var open = Array.prototype.map.call(document.querySelectorAll('details.item[open]'), function (d) { return d.getAttribute('data-item'); }); renderForm(); open.forEach(function (k) { var d = document.querySelector('[data-item="' + k + '"]'); if (d) d.open = true; }); return; }
+    patchInputs(); refreshStatus();
+  }
+
+  function subscribe() {
+    db.collection('services').onSnapshot(function (snap) {
+      var before = Object.keys(data.services).length, next = {};
+      snap.docs.forEach(function (d) { var x = d.data(); var local = data.services[d.id]; next[d.id] = Object.assign({ id: d.id }, x, pendingMerge('svc', d.id, x)); });
+      data.services = next; loaded.services = true; onData(Object.keys(next).length !== before);
+    }, fail);
+    db.collection('addons').onSnapshot(function (snap) {
+      var before = Object.keys(data.addons).length, next = {};
+      snap.docs.forEach(function (d) { var x = d.data(); next[d.id] = Object.assign({ id: d.id }, x, pendingMerge('addon', d.id, x)); });
+      data.addons = next; loaded.addons = true; onData(Object.keys(next).length !== before);
+    }, fail);
+    db.doc('sections/basics').onSnapshot(function (d) {
+      var x = d.exists ? d.data() : null;
+      data.basics = x ? Object.assign({ id: 'basics' }, x, pendingMerge('basic', 'basics', x)) : null; loaded.basics = true; onData(false);
+    }, fail);
+  }
+  // Keep answers that are typed but not yet written, so a snapshot never rolls them back.
+  function pendingMerge(kind, id, x) {
+    var q = queues[kind + id]; if (!q || !Object.keys(q.patch).length) return {};
+    return { a: Object.assign({}, x.a || {}, q.patch) };
+  }
+  function fail() { setSaved('Lost connection to the saved answers. Reload the page.'); }
+
+  // ---------- Boot ----------
+  $('#tab-dash').addEventListener('click', function () { show('dash'); });
+  $('#tab-form').addEventListener('click', function () { show('form'); });
+  current = pref('sec') || 'basics';
+  if (!SECTIONS.some(function (s) { return s.key === current; })) current = 'basics';
+
+  var tries = 0;
+  (function boot() {
+    if (!(window.claude && window.claude.use)) {
+      if (tries++ < 50) return setTimeout(boot, 100);
+      $('#app').innerHTML = '';
+      $('#app').appendChild(el('div', { class: 'empty' }, [el('h2', { text: 'Open this page in Claude' }), el('p', { text: 'Sign in to Claude with the email address this form was shared with, then open the link again.' })]));
+      return;
+    }
+    start();
+  })();
+  function start() { Promise.all([claude.use('db'), claude.use('user'), claude.use('assets')]).then(function (r) {
+    db = r[0]; var user = r[1]; assets = r[2];
+    if (!db) {
+      $('#app').innerHTML = '';
+      $('#app').appendChild(el('div', { class: 'empty' }, [el('h2', { text: 'Please sign in' }), el('p', { text: 'Sign in to Claude with the email address this form was shared with, then open the link again.' })]));
+      return;
+    }
+    return Promise.all([user ? user.isOwner() : false, user ? user.can('data.write') : null]).then(function (u) {
+      isOwner = !!u[0]; canWrite = u[1] !== false;
+      if (isOwner) { $('#tabs').hidden = false; view = pref('view') || 'dash'; }
+      subscribe();
+    });
+  });
+  }
+})();
+</script>
