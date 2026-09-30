@@ -83,7 +83,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .label { font: 600 10px/1 var(--sans); letter-spacing: .2em; text-transform: uppercase; color: var(--mauve); }
 .serif { font-family: var(--serif); font-weight: 600; }
 .accent { font-style: italic; color: var(--mauve); }
-.h2 { font-family: var(--serif); font-weight: 600; font-size: 54px; line-height: 1.1; }
+.h2 { font-family: var(--serif); font-weight: 600; font-size: 54px; line-height: normal; }
 .stars { color: var(--gold); font-weight: 600; }
 
 /* ---------- Buttons & links ---------- */
