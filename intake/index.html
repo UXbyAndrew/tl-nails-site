@@ -1,3 +1,10 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
 <title>T&amp;L Service Intake</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,6 +34,8 @@
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+html, body { margin: 0; }
+img { max-width: 100%; }
 body { background: var(--bg); color: var(--ink); font: 400 15px/1.6 var(--sans); padding-inline: 20px; padding-block: 0 80px; -webkit-font-smoothing: antialiased; }
 .page { max-width: 1080px; margin-inline: auto; }
 h1, h2, h3 { font-family: var(--serif); font-weight: 600; margin: 0; text-wrap: balance; line-height: 1.1; }
@@ -177,6 +186,8 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
+</head>
+<body>
 <div class="page">
   <header class="mast">
     <span class="wordmark">T&amp;L Nails</span>
@@ -239,7 +250,17 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
   ];
 
   // ---------- State ----------
-  var db = null, assets = null, isOwner = false, canWrite = true;
+  // Supabase project "tl-nails". The publishable key is public by design: the tables accept no direct
+  // access, and every call below needs the private token carried in this page's link (#k=…).
+  var SB_URL = 'https://xiuijjwmmxssvlxqcjju.supabase.co';
+  var SB_KEY = 'sb_publishable_tRMgJ6sdwxkH1UFSgDGZdQ__scd8cTX';
+  var PHOTO_BASE = SB_URL + '/storage/v1/object/public/intake-photos/';
+  var TOKEN = ((location.hash.match(/[#&]k=([a-f0-9]{16,})/) || [])[1]) || '';
+  var isOwner = false, canWrite = true, uploads = true;
+  function rpc(fn, args) {
+    return fetch(SB_URL + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(args) })
+      .then(function (r) { return r.json().catch(function () { return null; }).then(function (b) { if (!r.ok) { var e = new Error((b && b.message) || r.status); e.code = (b && b.message) || String(r.status); throw e; } return b; }); });
+  }
   var data = { services: {}, addons: {}, basics: null };
   var loaded = { services: false, addons: false, basics: false };
   var view = 'form', current = 'basics', built = false;
@@ -288,13 +309,12 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
 
   // ---------- Saving (one write at a time per document, coalesced) ----------
   var queues = {}, savedTimer;
-  function docRef(kind, id) { return db.doc(kind === 'svc' ? 'services/' + id : kind === 'addon' ? 'addons/' + id : 'sections/basics'); }
   function localDoc(kind, id) { return kind === 'svc' ? data.services[id] : kind === 'addon' ? data.addons[id] : data.basics; }
   function save(kind, id, key, value) {
     var d = localDoc(kind, id);
     if (d) { d.a = Object.assign({}, d.a || {}); d.a[key] = value; }
     refreshStatus();
-    if (!db || !canWrite) return;
+    if (!canWrite) return;
     var q = queues[kind + id] || (queues[kind + id] = { patch: {}, busy: false });
     q.patch[key] = value;
     flush(kind, id, q);
@@ -302,16 +322,17 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
   function flush(kind, id, q) {
     if (q.busy || !Object.keys(q.patch).length) return;
     var patch = q.patch; q.patch = {}; q.busy = true;
-    var ts = new Date().toISOString(), d = localDoc(kind, id);
-    if (d) d.updatedAt = ts;
+    var keys = Object.keys(patch), rowId = kind === 'basic' ? 'basics' : id;
     setSaved('Saving…');
-    docRef(kind, id).update({ a: patch, updatedAt: ts }).then(function () {
-      q.busy = false; setSaved('All changes saved'); flush(kind, id, q);
-    }, function (e) {
-      q.busy = false;
-      if (e && e.code === 'invalid_argument') { canWrite = false; setSaved('You can view this form but not change it. Ask for edit access.'); }
-      else { setSaved('Could not save. Check your connection; your last change will retry.'); Object.assign(q.patch, patch); setTimeout(function () { flush(kind, id, q); }, 3000); }
-    });
+    keys.reduce(function (p, k) { return p.then(function () { return rpc('intake_save', { p_token: TOKEN, p_id: rowId, p_key: k, p_value: patch[k] }); }); }, Promise.resolve())
+      .then(function (ts) {
+        var d = localDoc(kind, id); if (d && ts) d.updatedAt = ts;
+        q.busy = false; setSaved('All changes saved'); flush(kind, id, q);
+      }, function (e) {
+        q.busy = false;
+        if (e && e.code === 'invalid_link') { canWrite = false; setSaved('This link no longer works. Ask for a new one.'); }
+        else { setSaved('Could not save. Check your connection; your last change will retry.'); Object.keys(patch).forEach(function (k) { if (!(k in q.patch)) q.patch[k] = patch[k]; }); setTimeout(function () { flush(kind, id, q); }, 3000); }
+      });
   }
   function setSaved(t) { var s = $('#saved'); s.textContent = t; clearTimeout(savedTimer); if (t === 'All changes saved') savedTimer = setTimeout(function () { s.textContent = 'Saved'; }, 2500); }
 
@@ -441,15 +462,14 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
       wrap.textContent = '';
       list.forEach(function (pid) {
         wrap.appendChild(el('figure', null, [
-          el('img', { src: '/_blob/' + pid, alt: 'Uploaded photo', loading: 'lazy' }),
-          assets && canWrite ? el('button', { type: 'button', 'aria-label': 'Remove photo', text: '×', onclick: function () {
+          el('img', { src: PHOTO_BASE + pid, alt: 'Uploaded photo', loading: 'lazy' }),
+          canWrite ? el('button', { type: 'button', 'aria-label': 'Remove photo', text: '×', onclick: function () {
             var next = list.filter(function (x) { return x !== pid; });
             save(it.kind, it.id, def.k, next); draw(next);
-            assets.delete(pid).catch(function () {});
           } }) : null
         ]));
       });
-      if (assets && canWrite && list.length < 6) {
+      if (uploads && canWrite && list.length < 6) {
         var input = el('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp', multiple: true });
         var lab = el('label', { class: 'upload' }, [input, el('span', { text: '+ Add photos' })]);
         input.addEventListener('change', function () {
@@ -457,26 +477,32 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
           if (!files.length) return;
           lab.lastChild.textContent = 'Uploading…';
           var out = list.slice();
-          files.reduce(function (p, f) { return p.then(function () { return assets.upload(f).then(function (r) { out.push(r.id); }); }); }, Promise.resolve())
+          files.reduce(function (p, f) { return p.then(function () { return uploadPhoto(f).then(function (path) { out.push(path); }); }); }, Promise.resolve())
             .then(function () { save(it.kind, it.id, def.k, out); draw(out); },
-              function (e) { setSaved(e && e.code === 'too_large' ? 'That photo is over 20 MB. Try a smaller one.' : 'A photo could not upload. Try again, or send it by email.'); save(it.kind, it.id, def.k, out); draw(out); });
+              function (e) { setSaved(e && e.message === 'too_large' ? 'That photo is over 10 MB. Try a smaller one.' : e && e.message === 'unsupported_type' ? 'Please use a JPG, PNG or WebP photo.' : 'A photo could not upload. Try again, or text it to your web designer.'); save(it.kind, it.id, def.k, out); draw(out); });
         });
         wrap.appendChild(lab);
       }
-      if (!assets) wrap.appendChild(el('p', { class: 'notice', text: 'Photo uploads are not available in this view. Text them to your web designer instead.' }));
     };
     draw(ids.slice());
     return wrap;
   }
 
+  function uploadPhoto(file) {
+    var fd = new FormData(); fd.append('token', TOKEN); fd.append('file', file);
+    return fetch(SB_URL + '/functions/v1/intake-upload', { method: 'POST', headers: { apikey: SB_KEY }, body: fd })
+      .then(function (r) { return r.json().then(function (b) { if (!r.ok || !b.path) throw new Error((b && b.error) || 'upload_failed'); return b.path; }); });
+  }
+
   function addService(cat) {
     var name = el('input', { type: 'text', id: 'add-' + cat, placeholder: 'Service name, e.g. "Jelly Pedicure"' });
     var btn = el('button', { class: 'btn', type: 'button', text: 'Add service', onclick: function () {
-      var n = name.value.trim(); if (!n || !db) return;
-      var id = cat + '-' + n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) + '-' + Date.now().toString(36);
-      var doc = { cat: cat, name: n, order: 900, custom: true, a: { offered: 'Yes' }, updatedAt: new Date().toISOString() };
+      var n = name.value.trim(); if (!n) return;
       btn.disabled = true;
-      db.doc('services/' + id).set(doc).then(function () { data.services[id] = Object.assign({ id: id }, doc); name.value = ''; btn.disabled = false; renderForm(); var d = document.querySelector('[data-item="svc:' + id + '"]'); if (d) { d.open = true; d.scrollIntoView({ block: 'center' }); } },
+      rpc('intake_add_service', { p_token: TOKEN, p_cat: cat, p_name: n }).then(function (id) {
+        data.services[id] = { id: id, cat: cat, name: n, order: 900, custom: true, a: { offered: 'Yes' }, updatedAt: new Date().toISOString() };
+        name.value = ''; btn.disabled = false; renderForm();
+        var d = document.querySelector('[data-item="svc:' + id + '"]'); if (d) { d.open = true; d.scrollIntoView({ block: 'center' }); } },
         function () { btn.disabled = false; setSaved('Could not add that service. Try again.'); });
     } });
     return el('div', { class: 'add-svc' }, [el('span', { class: 'label', text: 'Missing a service?' }), el('div', { class: 'row' }, [el('label', { class: 'sr-only', for: 'add-' + cat, text: 'New service name', style: 'position:absolute;left:-9999px' }), name, btn])]);
@@ -579,7 +605,7 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
     var sel = el('select', { id: 'ans-sec', 'aria-label': 'Section to show' }, SECTIONS.map(function (s) { return el('option', { value: s.key, text: s.title, selected: s.key === ansSection }); }));
     sel.addEventListener('change', function () { ansSection = sel.value; pref('ans', sel.value); renderDash(); });
     var copyBtn = el('button', { class: 'btn ghost', type: 'button', text: 'Copy all answers (JSON)', onclick: function () {
-      var dump = { basics: data.basics && data.basics.a, services: sorted(data.services).map(function (s) { return { id: s.id, category: s.cat, name: s.name, answers: s.a || {} }; }), addons: sorted(data.addons).map(function (x) { return { id: x.id, name: x.name, answers: x.a || {} }; }) };
+      var dump = { photoBase: PHOTO_BASE, basics: data.basics && data.basics.a, services: sorted(data.services).map(function (s) { return { id: s.id, category: s.cat, name: s.name, answers: s.a || {} }; }), addons: sorted(data.addons).map(function (x) { return { id: x.id, name: x.name, answers: x.a || {} }; }) };
       var txt = JSON.stringify(dump, null, 2);
       navigator.clipboard.writeText(txt).then(function () { copyBtn.textContent = 'Copied'; setTimeout(function () { copyBtn.textContent = 'Copy all answers (JSON)'; }, 2000); }, function () { copyBtn.textContent = 'Copy blocked here'; });
     } });
@@ -591,7 +617,7 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
         var v = a[f.k];
         if (f.type === 'photos') {
           dl.appendChild(el('dt', { text: 'Photos' }));
-          dl.appendChild(filled(v) ? el('dd', null, [el('div', { class: 'thumbs' }, v.map(function (pid) { return el('img', { src: '/_blob/' + pid, alt: 'Photo for ' + (it.doc.name || 'service'), loading: 'lazy' }); }))]) : el('dd', { class: 'missing', text: 'None yet' }));
+          dl.appendChild(filled(v) ? el('dd', null, [el('div', { class: 'thumbs' }, v.map(function (pid) { return el('img', { src: PHOTO_BASE + pid, alt: 'Photo for ' + (it.doc.name || 'service'), loading: 'lazy' }); }))]) : el('dd', { class: 'missing', text: 'None yet' }));
           return;
         }
         dl.appendChild(el('dt', { text: f.col || f.label.replace(/\?$/, '') }));
@@ -613,7 +639,7 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
 
   // ---------- Views ----------
   function show(v) {
-    view = v; pref('view', v);
+    view = v; if (isOwner) pref('view', v);
     $('#tab-dash').setAttribute('aria-selected', v === 'dash'); $('#tab-form').setAttribute('aria-selected', v === 'form');
     v === 'dash' ? renderDash() : renderForm();
   }
@@ -630,28 +656,30 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
     patchInputs(); refreshStatus();
   }
 
-  function subscribe() {
-    db.collection('services').onSnapshot(function (snap) {
-      var before = Object.keys(data.services).length, next = {};
-      snap.docs.forEach(function (d) { var x = d.data(); var local = data.services[d.id]; next[d.id] = Object.assign({ id: d.id }, x, pendingMerge('svc', d.id, x)); });
-      data.services = next; loaded.services = true; onData(Object.keys(next).length !== before);
-    }, fail);
-    db.collection('addons').onSnapshot(function (snap) {
-      var before = Object.keys(data.addons).length, next = {};
-      snap.docs.forEach(function (d) { var x = d.data(); next[d.id] = Object.assign({ id: d.id }, x, pendingMerge('addon', d.id, x)); });
-      data.addons = next; loaded.addons = true; onData(Object.keys(next).length !== before);
-    }, fail);
-    db.doc('sections/basics').onSnapshot(function (d) {
-      var x = d.exists ? d.data() : null;
-      data.basics = x ? Object.assign({ id: 'basics' }, x, pendingMerge('basic', 'basics', x)) : null; loaded.basics = true; onData(false);
-    }, fail);
+  function load() {
+    return rpc('intake_load', { p_token: TOKEN }).then(function (res) {
+      var before = Object.keys(data.services).length, svc = {}, add = {}, basics = null;
+      (res.items || []).forEach(function (x) {
+        var row = Object.assign({}, x, pendingMerge(x.kind, x.kind === 'basic' ? 'basics' : x.id, x));
+        if (x.kind === 'svc') svc[x.id] = row; else if (x.kind === 'addon') add[x.id] = row; else basics = Object.assign(row, { id: 'basics' });
+      });
+      data.services = svc; data.addons = add; data.basics = basics;
+      loaded.services = loaded.addons = loaded.basics = true;
+      onData(Object.keys(svc).length !== before);
+      return res.role;
+    });
+  }
+  function busy() { return Object.keys(queues).some(function (k) { return queues[k].busy || Object.keys(queues[k].patch).length; }) || Object.keys(timers).some(function (k) { return timers[k]; }); }
+  function poll() {
+    setTimeout(function () {
+      if (document.visibilityState === 'visible' && !busy()) load().catch(function () {}).then(poll); else poll();
+    }, 20000);
   }
   // Keep answers that are typed but not yet written, so a snapshot never rolls them back.
   function pendingMerge(kind, id, x) {
     var q = queues[kind + id]; if (!q || !Object.keys(q.patch).length) return {};
     return { a: Object.assign({}, x.a || {}, q.patch) };
   }
-  function fail() { setSaved('Lost connection to the saved answers. Reload the page.'); }
 
   // ---------- Boot ----------
   $('#tab-dash').addEventListener('click', function () { show('dash'); });
@@ -659,29 +687,22 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
   current = pref('sec') || 'basics';
   if (!SECTIONS.some(function (s) { return s.key === current; })) current = 'basics';
 
-  var tries = 0;
-  (function boot() {
-    if (!(window.claude && window.claude.use)) {
-      if (tries++ < 50) return setTimeout(boot, 100);
-      $('#app').innerHTML = '';
-      $('#app').appendChild(el('div', { class: 'empty' }, [el('h2', { text: 'Open this page in Claude' }), el('p', { text: 'Sign in to Claude with the email address this form was shared with, then open the link again.' })]));
-      return;
-    }
-    start();
-  })();
-  function start() { Promise.all([claude.use('db'), claude.use('user'), claude.use('assets')]).then(function (r) {
-    db = r[0]; var user = r[1]; assets = r[2];
-    if (!db) {
-      $('#app').innerHTML = '';
-      $('#app').appendChild(el('div', { class: 'empty' }, [el('h2', { text: 'Please sign in' }), el('p', { text: 'Sign in to Claude with the email address this form was shared with, then open the link again.' })]));
-      return;
-    }
-    return Promise.all([user ? user.isOwner() : false, user ? user.can('data.write') : null]).then(function (u) {
-      isOwner = !!u[0]; canWrite = u[1] !== false;
-      if (isOwner) { $('#tabs').hidden = false; view = pref('view') || 'dash'; }
-      subscribe();
+  function stop(title, msg) {
+    $('#app').innerHTML = '';
+    $('#app').appendChild(el('div', { class: 'empty' }, [el('h2', { text: title }), el('p', { text: msg })]));
+  }
+  if (!TOKEN) {
+    stop('This link is incomplete', 'Open the full link you were sent. It ends with a long code after "#k=".');
+  } else {
+    load().then(function (role) {
+      if (role === 'admin') { isOwner = true; $('#tabs').hidden = false; view = pref('view') || 'dash'; show(view); }
+      poll();
+    }, function (e) {
+      if (e && e.code === 'invalid_link') stop('This link no longer works', 'Ask your web designer for a new link.');
+      else stop('Could not load the form', 'Check your internet connection and reload the page.');
     });
-  });
   }
 })();
 </script>
+</body>
+</html>

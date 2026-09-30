@@ -23,8 +23,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      # The website, plus the private service intake form at /intake/ (unlinked; useless without a private key).
+      - run: |
+          mkdir -p _deploy
+          cp -r site/. _deploy/
+          cp -r intake _deploy/intake
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: _deploy
       - id: deployment
         uses: actions/deploy-pages@v4
