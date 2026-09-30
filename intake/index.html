@@ -210,13 +210,13 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
   // ---------- Structure of the questionnaire ----------
   var SECTIONS = [
     { key: 'basics', title: 'Salon basics', blurb: 'A few details about both salons that the website needs. Short answers are perfect.' },
-    { key: 'manicures', title: 'Manicures', blurb: 'For each manicure, confirm the price and time, then describe it the way you would to a new client.' },
-    { key: 'pedicures', title: 'Pedicures', blurb: 'For each pedicure, confirm the price and time, then describe it the way you would to a new client.' },
-    { key: 'enhancements', title: 'Enhancements', blurb: 'Acrylic, dip, Gel-X and removals. Mention length or shape pricing wherever it applies.' },
-    { key: 'nail-art', title: 'Nail art', blurb: 'Designs, chrome, rhinestones and charms. Per-nail pricing is fine.' },
-    { key: 'lashes', title: 'Lashes', blurb: 'Lash sets and fills.' },
+    { key: 'manicures', title: 'Hands', blurb: 'Manicures, polish changes and quick fixes from the Hands menu. We copied what your current website says; check each one and fill in the gaps.' },
+    { key: 'pedicures', title: 'Feet', blurb: 'Pedicures and mani-pedi combos from the Feet menu. We copied what your current website says; check each one and fill in the gaps.' },
+    { key: 'enhancements', title: 'Extensions', blurb: 'Acrylic, builder gel and Gel-X. Mention length pricing wherever it applies.' },
+    { key: 'nail-art', title: 'Nail art', blurb: 'Your current website does not list nail art. Add any designs you offer, e.g. chrome, French or hand-painted art. Per-nail pricing is fine.' },
+    { key: 'lashes', title: 'Lashes', blurb: 'Classic, volume and hybrid sets and fills.' },
     { key: 'waxing', title: 'Waxing', blurb: 'Brows, face and body waxing.' },
-    { key: 'addons', title: 'Add-ons', blurb: 'Extras clients can add to any service. Mark the ones you offer and confirm each price.' }
+    { key: 'addons', title: 'Add-ons', blurb: 'Extras clients can add to a service. Mark the ones you offer and confirm each price.' }
   ];
   var LOCS = ['Kennedy Blvd', 'Davis Islands'];
 
@@ -236,11 +236,14 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
   var BASIC_FIELDS = [
     { k: 'hoursKennedy', label: 'Kennedy Blvd hours', help: 'Every day of the week, including closed days.', type: 'textarea', req: true, ph: 'Mon–Thu 10am–7pm\nFri 9am–7pm\nSat 9am–6pm\nSun 11am–5pm' },
     { k: 'hoursDavis', label: 'Davis Islands hours', help: 'Every day of the week, including closed days. Our current list is missing Friday.', type: 'textarea', req: true, ph: 'Mon closed\nTue–Thu 10am–7pm\nFri ?\nSat 9am–6pm\nSun 11am–5pm' },
+    { k: 'phoneKennedy', label: 'Kennedy Blvd phone number', type: 'text', req: true, ph: '(813) …' },
+    { k: 'phoneDavis', label: 'Davis Islands phone number', type: 'text', req: true, ph: '(813) …' },
     { k: 'payments', label: 'Payment methods you accept', type: 'text', req: true, ph: 'Cash, all major cards, Apple Pay…' },
     { k: 'giftCards', label: 'Do you sell gift cards?', type: 'choice', opts: ['Yes, in salon', 'Yes, in salon and online', 'No'], req: true },
     { k: 'policy', label: 'Late arrival or cancellation policy', help: 'Write "none" if you do not have one.', type: 'textarea', req: true },
     { k: 'walkins', label: 'Walk-ins', type: 'choice', opts: ['Always welcome', 'When we have space', 'Appointments only'], req: true },
     { k: 'facebook', label: 'Facebook page link', help: 'Write "none" if you do not have one.', type: 'text', req: true, ph: 'facebook.com/…' },
+    { k: 'instagram', label: 'Instagram link', help: 'Write "none" if you do not have one.', type: 'text', req: true, ph: 'instagram.com/…' },
     { k: 'yelp', label: 'Yelp page link(s)', help: 'One for each salon if they are separate.', type: 'textarea', req: true, ph: 'yelp.com/biz/…' },
     { k: 'extra', label: 'Anything else the website should say?', type: 'textarea' }
   ];
