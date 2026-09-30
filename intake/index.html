@@ -129,6 +129,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--mauve); }
 .dash { display: grid; gap: 44px; padding-top: 36px; }
 .summary { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 36px; align-items: center; }
 .ring { width: 150px; height: 150px; }
+.updated { font: 500 12px/1.4 var(--sans); color: var(--muted); margin-top: 8px; }
 .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
 .kpi { border-top: 1px solid var(--rule); padding-top: 14px; }
 .kpi b { display: block; font: 600 32px/1 var(--serif); color: var(--deep); margin-bottom: 8px; }
@@ -537,9 +538,11 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
   var ansSection = pref('ans') || 'manicures';
   function renderDash() {
     var app = $('#app'); app.textContent = '';
-    var o = overall(), svcs = sorted(data.services), offered = 0, svcDone = 0, last = '';
-    svcs.forEach(function (s) { var p = progress('svc', s); if (!p.off) offered++; if (p.done === p.total) svcDone++; if (s.updatedAt > last) last = s.updatedAt; });
-    [data.basics].concat(sorted(data.addons)).forEach(function (d) { if (d && d.updatedAt > last) last = d.updatedAt; });
+    var o = overall(), svcs = sorted(data.services), offered = 0, svcDone = 0, last = '', lastName = '';
+    svcs.forEach(function (s) { var p = progress('svc', s); if (!p.off) offered++; if (p.done === p.total) svcDone++; });
+    svcs.concat([data.basics], sorted(data.addons)).forEach(function (d) {
+      if (d && d.updatedAt && d.updatedAt > last) { last = d.updatedAt; lastName = d.id === 'basics' ? 'Salon basics' : d.name; }
+    });
     var photos = svcs.reduce(function (n, s) { return n + (((s.a || {}).photos || []).length); }, 0);
 
     // Ring
@@ -554,6 +557,7 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
     var dash = el('div', { class: 'dash' });
     dash.appendChild(el('section', { class: 'summary', 'aria-label': 'Summary' }, [svg, el('div', null, [
       el('div', { class: 'eyebrow', text: 'Service intake · live' }),
+      el('p', { class: 'updated num', title: last ? new Date(last).toString() : '', text: last ? 'Last updated ' + stamp(last) + ' · ' + lastName : 'No changes yet' }),
       el('h1', { style: 'font-size:clamp(32px,4.5vw,46px);margin:12px 0 22px', text: o.done + ' of ' + o.total + ' answers in' }),
       el('div', { class: 'kpis' }, [
         el('div', { class: 'kpi' }, [el('b', { class: 'num', text: svcDone + ' / ' + svcs.length }), el('span', { text: 'services fully answered' })]),
@@ -631,6 +635,10 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
     app.appendChild(dash);
   }
   function preview(v) { var s = Array.isArray(v) ? (typeof v[0] === 'string' && v[0].length > 20 ? v.length + ' photos' : v.join(', ')) : String(v); return s.length > 90 ? s.slice(0, 90) + '…' : s; }
+  function stamp(iso) {
+    var d = new Date(iso), a = ago(iso);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: d.getFullYear() === new Date().getFullYear() ? undefined : 'numeric' }) + ', ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) + ' (' + (a === 'just now' ? a : a + ' ago') + ')';
+  }
   function ago(iso) {
     var s = (Date.now() - Date.parse(iso)) / 1000;
     if (s < 90) return 'just now'; if (s < 5400) return Math.round(s / 60) + ' min'; if (s < 129600) return Math.round(s / 3600) + ' hr'; return Math.round(s / 86400) + ' days';
