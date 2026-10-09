@@ -695,6 +695,10 @@ table { border-collapse: collapse; width: 100%; font-size: 13px; }
       if (document.visibilityState === 'visible' && !busy()) load().catch(function () {}).then(poll); else poll();
     }, 20000);
   }
+  // Refresh right away when the tab comes back into view or is restored from the back/forward cache.
+  function refreshNow() { if (TOKEN && ready() && document.visibilityState === 'visible' && !busy()) load().catch(function () {}); }
+  document.addEventListener('visibilitychange', refreshNow);
+  addEventListener('pageshow', function (e) { if (e.persisted) refreshNow(); });
   // Keep answers that are typed but not yet written, so a snapshot never rolls them back.
   function pendingMerge(kind, id, x) {
     var q = queues[kind + id]; if (!q || !Object.keys(q.patch).length) return {};
