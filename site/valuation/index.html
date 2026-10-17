@@ -1,0 +1,398 @@
+<!-- test -->
+line2<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Business Sale Price Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FBF4F1; --paper:#FFFFFF; --ink:#3A2A2E; --muted:#6D565C; --line:rgba(58,42,46,.16);
+  --field:#FBF4F1; --deal:#5E3A44; --deal-soft:#F6E5E9; --band:#EFD4DB; --ask:#A76A78;
+  --warn:#9A6407; --warn-soft:#FFF5EA; --cap:#B14E4E; --focus:#8D5865;
+  --good:#33653F; --bad:#913537;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#2A1F22; --paper:#3A2A2E; --ink:#FBF4F1; --muted:#DBCDD0; --line:rgba(255,255,255,.16);
+    --field:#46333A; --deal:#E3BCC6; --deal-soft:#5E3A44; --band:#744854; --ask:#C9899A;
+    --warn:#F1BD7B; --warn-soft:#36290D; --cap:#FCB1AE; --focus:#E3BCC6;
+    --good:#AED2B4; --bad:#FCB1AE;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#2A1F22; --paper:#3A2A2E; --ink:#FBF4F1; --muted:#DBCDD0; --line:rgba(255,255,255,.16);
+  --field:#46333A; --deal:#E3BCC6; --deal-soft:#5E3A44; --band:#744854; --ask:#C9899A;
+  --warn:#F1BD7B; --warn-soft:#36290D; --cap:#FCB1AE; --focus:#E3BCC6;
+  --good:#AED2B4; --bad:#FCB1AE;
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:Manrope,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:15px; line-height:1.5; font-variant-numeric:tabular-nums;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 60px}
+header{margin-bottom:24px;max-width:70ch}
+h1{font-size:clamp(26px,3.4vw,36px);line-height:1.1;margin:0 0 8px;font-weight:800;letter-spacing:-.02em}
+header p{margin:0;color:var(--muted)}
+body :is(h1,legend,summary,h3,.target,.trio b,.sum strong){font-family:"Cormorant Garamond",Georgia,"Times New Roman",serif;font-weight:600;letter-spacing:-.01em}
+body h1{font-size:clamp(32px,4.2vw,46px)}
+body .target{font-size:clamp(48px,6vw,64px)}
+body legend,body summary{font-size:22px}
+body h3{font-size:21px}
+body .trio b,body .sum strong{font-size:22px}
+.cur{margin-top:14px;display:flex;gap:8px;align-items:center;color:var(--muted);font-size:14px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:24px;align-items:start}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}}
+
+form{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+fieldset{border:0;margin:0;padding:22px 22px 6px;border-bottom:1px solid var(--line)}
+fieldset:last-of-type{border-bottom:0}
+legend{float:left;width:100%;padding:0;font-weight:700;font-size:17px;margin-bottom:2px}
+.lede{clear:both;margin:0 0 14px;color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px 16px;margin-bottom:16px}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f.wide{grid-column:1/-1}
+label{font-size:14px;font-weight:600}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.35}
+input,select{
+  font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);
+  border-radius:8px;padding:9px 11px;width:100%;min-width:0;
+}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.money{position:relative}
+.money span{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.money input{padding-left:26px}
+.pair{display:flex;gap:8px}
+.pair .f{flex:1}
+.sum{display:flex;justify-content:space-between;align-items:baseline;background:var(--deal-soft);border-radius:8px;padding:10px 12px;margin:-4px 0 18px;font-size:14px}
+.sum strong{font-size:17px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg label{font-weight:500;font-size:13px;text-align:center;padding:8px 6px;cursor:pointer;background:var(--field);border-right:1px solid var(--line);line-height:1.25}
+.seg label:last-of-type{border-right:0}
+.seg input:checked+label{background:var(--ink);color:var(--paper)}
+.seg input:focus-visible+label{outline:2px solid var(--focus);outline-offset:-2px}
+details{padding:0 22px 18px}
+summary{cursor:pointer;font-weight:700;font-size:17px;padding:20px 0 6px;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";float:right;color:var(--muted);font-weight:500}
+details[open] summary::after{content:"–"}
+details .lede{margin-top:2px}
+
+aside{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px)}
+@media (max-width:900px){aside{position:static}}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:22px}
+.card + .card{margin-top:14px}
+.tlabel{font-size:14px;color:var(--muted);margin:0}
+.target{font-size:clamp(38px,5vw,52px);font-weight:800;letter-spacing:-.03em;line-height:1.05;color:var(--deal);margin:2px 0 4px}
+.sub{font-size:14px;color:var(--muted);margin:0 0 18px}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+.trio div{border-top:3px solid var(--line);padding-top:6px}
+.trio .a{border-color:var(--ask)}
+.trio .t{border-color:var(--deal)}
+.trio .w{border-color:var(--muted)}
+.trio b{display:block;font-size:17px}
+.trio small{color:var(--muted);font-size:12.5px;line-height:1.3;display:block}
+
+.scale{position:relative;height:74px;margin:6px 0 4px}
+.track{position:absolute;left:0;right:0;top:30px;height:10px;border-radius:5px;background:var(--field);border:1px solid var(--line)}
+.band{position:absolute;top:30px;height:10px;background:var(--band);border-radius:5px}
+.mk{position:absolute;top:20px;width:0;height:30px}
+.mk::before{content:"";position:absolute;left:-1.5px;top:0;width:3px;height:30px;border-radius:2px;background:currentColor}
+.mk span{position:absolute;white-space:nowrap;font-size:11.5px;font-weight:600;transform:translateX(-50%)}
+.mk.top span{bottom:34px}
+.mk.bot span{top:34px}
+.mk.t{color:var(--deal)} .mk.a{color:var(--ask)} .mk.w{color:var(--muted)} .mk.c{color:var(--cap)}
+.mk.c::before{width:0;left:0;background:none;border-left:2px dashed currentColor}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:12px;height:8px;border-radius:2px;background:var(--band);margin-right:5px;vertical-align:middle}
+
+.msg{border-radius:8px;padding:10px 12px;font-size:13.5px;margin-top:14px;background:var(--warn-soft);color:var(--ink);border-left:3px solid var(--warn)}
+.msg:empty{display:none}
+.msg p{margin:0}.msg p+p{margin-top:6px}
+
+h3{font-size:16px;margin:0 0 10px}
+dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:7px 12px;font-size:14px}
+dt{color:var(--muted)} dd{margin:0;text-align:right;font-weight:600}
+dd.good{color:var(--good)} dd.bad{color:var(--bad)}
+.sep{grid-column:1/-1;border-top:1px solid var(--line);margin:3px 0}
+.foot{font-size:12.5px;color:var(--muted);margin-top:14px}
+button.reset{font:inherit;font-size:14px;background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer}
+@media (prefers-reduced-motion:no-preference){.mk,.band{transition:left .25s ease,width .25s ease}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>What should I sell my business for?</h1>
+  <p>Fill in your numbers from the last 12 months. The price updates as you type, using the same three checks a broker, an accountant and a buyer’s lender would run.</p>
+  <div class="cur">
+    <label for="currency" style="font-weight:500">Currency</label>
+    <select id="currency" style="width:auto;padding:6px 10px">
+      <option value="EUR">€ Euro</option><option value="USD">$ US dollar</option><option value="GBP">£ Pound</option>
+    </select>
+    <button type="button" class="reset" id="reset">Reset to example</button>
+  </div>
+</header>
+
+<div class="layout">
+<form id="f" autocomplete="off" onsubmit="return false">
+
+  <fieldset>
+    <legend>The business</legend>
+    <p class="lede">Industry sets the typical price range buyers pay. Swap in your own range if a broker gives you one.</p>
+    <div class="grid">
+      <div class="f wide"><label for="industry">Industry</label><select id="industry"></select></div>
+      <div class="f"><label for="revenue">Annual revenue</label><div class="money"><span class="c">€</span><input id="revenue" type="number" inputmode="decimal" min="0"></div></div>
+      <div class="f"><label>Price range (× owner earnings)</label>
+        <div class="pair"><div class="f"><input id="mlo" type="number" step="0.1" min="0" aria-label="Low multiple"></div><div class="f"><input id="mhi" type="number" step="0.1" min="0" aria-label="High multiple"></div></div>
+        <span class="hint">Low and high. Filled in from the industry.</span></div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Earnings</legend>
+    <p class="lede">Buyers pay for what the business puts in an owner’s pocket. Add back costs a new owner wouldn’t have.</p>
+    <div class="grid">
+      <div class="f"><label for="profit">Net profit before tax</label><div class="money"><span class="c">€</span><input id="profit" type="number" inputmode="decimal"></div><span class="hint">Bottom line on your P&amp;L</span></div>
+      <div class="f"><label for="ownerPay">What you pay yourself</label><div class="money"><span class="c">€</span><input id="ownerPay" type="number" inputmode="decimal" min="0"></div><span class="hint">Salary plus your benefits</span></div>
+      <div class="f"><label for="dep">Depreciation &amp; amortization</label><div class="money"><span class="c">€</span><input id="dep" type="number" inputmode="decimal" min="0"></div></div>
+      <div class="f"><label for="interest">Loan interest paid</label><div class="money"><span class="c">€</span><input id="interest" type="number" inputmode="decimal" min="0"></div><span class="hint">Your debt doesn’t transfer</span></div>
+      <div class="f"><label for="oneTime">One-time costs</label><div class="money"><span class="c">€</span><input id="oneTime" type="number" inputmode="decimal" min="0"></div><span class="hint">Lawsuit, rebrand, a big repair</span></div>
+      <div class="f"><label for="personal">Personal costs run through the business</label><div class="money"><span class="c">€</span><input id="personal" type="number" inputmode="decimal" min="0"></div><span class="hint">Car, phone, family on payroll</span></div>
+      <div class="f wide"><label for="mgr">Salary to hire someone to run it</label><div class="money"><span class="c">€</span><input id="mgr" type="number" inputmode="decimal" min="0"></div><span class="hint">Market pay for a manager doing your job. A buyer needs to earn this before the deal makes sense.</span></div>
+    </div>
+    <div class="sum"><span>Owner earnings (SDE)</span><strong id="sdeOut">€0</strong></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>What’s included in the sale</legend>
+    <p class="lede">These set the floor: the business is worth at least what its stuff is worth.</p>
+    <div class="grid">
+      <div class="f"><label for="equip">Equipment &amp; fixtures</label><div class="money"><span class="c">€</span><input id="equip" type="number" inputmode="decimal" min="0"></div><span class="hint">What it would sell for used</span></div>
+      <div class="f"><label for="inventory">Inventory at cost</label><div class="money"><span class="c">€</span><input id="inventory" type="number" inputmode="decimal" min="0"></div><span class="hint">Added on top of the price</span></div>
+      <div class="f"><label for="otherAssets">Other assets included</label><div class="money"><span class="c">€</span><input id="otherAssets" type="number" inputmode="decimal" min="0"></div><span class="hint">Vehicles, receivables, IP</span></div>
+      <div class="f"><label for="liab">Debts the buyer takes on</label><div class="money"><span class="c">€</span><input id="liab" type="number" inputmode="decimal" min="0"></div><span class="hint">Usually zero</span></div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>What makes it more or less valuable</legend>
+    <p class="lede">These move you within the price range. Be honest; a buyer’s diligence will find out anyway.</p>
+    <div class="grid" id="factors"></div>
+  </fieldset>
+
+  <details>
+    <summary>Financing &amp; negotiation</summary>
+    <p class="lede">Most buyers borrow. The defaults reflect a typical small business acquisition loan; adjust if you know your market.</p>
+    <div class="grid">
+      <div class="f"><label for="down">Buyer’s down payment</label><input id="down" type="number" step="1" min="0" max="100"><span class="hint">% of price</span></div>
+      <div class="f"><label for="rate">Bank loan rate</label><input id="rate" type="number" step="0.1" min="0"><span class="hint">% per year</span></div>
+      <div class="f"><label for="term">Bank loan term</label><input id="term" type="number" step="1" min="1"><span class="hint">Years</span></div>
+      <div class="f"><label for="sn">Seller note (you finance)</label><input id="sn" type="number" step="1" min="0" max="100"><span class="hint">% of price you let them pay over time</span></div>
+      <div class="f"><label for="snRate">Seller note rate</label><input id="snRate" type="number" step="0.1" min="0"><span class="hint">% per year</span></div>
+      <div class="f"><label for="snTerm">Seller note term</label><input id="snTerm" type="number" step="1" min="1"><span class="hint">Years</span></div>
+      <div class="f"><label for="dscr">Lender safety margin</label><input id="dscr" type="number" step="0.05" min="1"><span class="hint">Earnings ÷ loan payments. 1.25 is standard.</span></div>
+      <div class="f"><label for="room">Negotiation room</label><input id="room" type="number" step="1" min="0"><span class="hint">% you list above your target</span></div>
+    </div>
+  </details>
+</form>
+
+<aside>
+  <div class="card" aria-live="polite">
+    <p class="tlabel">Target sale price</p>
+    <div class="target" id="target">€0</div>
+    <p class="sub" id="targetSub"></p>
+    <div class="trio">
+      <div class="a"><small>List it at</small><b id="ask"></b></div>
+      <div class="t"><small>Aim to close at</small><b id="target2"></b></div>
+      <div class="w"><small>Walk away below</small><b id="floor"></b></div>
+    </div>
+    <div class="scale" id="scale">
+      <div class="track"></div>
+      <div class="band" id="band"></div>
+      <div class="mk w bot" id="mkW"><span>Walk away</span></div>
+      <div class="mk t top" id="mkT"><span>Target</span></div>
+      <div class="mk a bot" id="mkA"><span>List</span></div>
+      <div class="mk c top" id="mkC"><span>Buyer’s limit</span></div>
+    </div>
+    <div class="legend"><span><i></i>Typical market range for your industry</span><span id="capNote"></span></div>
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <div class="card">
+    <h3>Will a buyer say yes at the target?</h3>
+    <dl>
+      <dt>Cash they put down</dt><dd id="bDown"></dd>
+      <dt>Yearly loan payments</dt><dd id="bDebt"></dd>
+      <dt>Lender coverage</dt><dd id="bDscr"></dd>
+      <dt>Their yearly cash after paying themselves and the loans</dt><dd id="bCash"></dd>
+      <dt>Return on their down payment</dt><dd id="bCoc"></dd>
+      <dt>Years to earn back the price</dt><dd id="bPay"></dd>
+    </dl>
+  </div>
+
+  <div class="card">
+    <h3>How the number was built</h3>
+    <dl>
+      <dt>Owner earnings (SDE)</dt><dd id="xSde"></dd>
+      <dt>Earnings after a paid manager (EBITDA)</dt><dd id="xEbitda"></dd>
+      <dt>Your multiple</dt><dd id="xMult"></dd>
+      <dt>Market value</dt><dd id="xFmv"></dd>
+      <dt>Most a typical buyer can finance</dt><dd id="xCap"></dd>
+      <dt>Asset floor</dt><dd id="xAsset"></dd>
+      <div class="sep"></div>
+      <dt>Target as a share of revenue</dt><dd id="xRev"></dd>
+    </dl>
+    <p class="foot">Industry ranges are typical small-business benchmarks, not a formal appraisal. Before you sign anything, have a business appraiser or broker confirm the range and an accountant review the add-backs.</p>
+  </div>
+</aside>
+</div>
+</div>
+
+<script>
+(function(){
+  var industries = {
+    service:{n:"Personal or home services (cleaning, salons, landscaping)",lo:1.8,hi:2.8},
+    retail:{n:"Retail store",lo:1.7,hi:2.6},
+    food:{n:"Restaurant, café or food",lo:1.5,hi:2.5},
+    ecom:{n:"E-commerce or online store",lo:2.5,hi:3.8},
+    agency:{n:"Agency or professional services",lo:2.0,hi:3.2},
+    trades:{n:"Construction or skilled trades",lo:2.2,hi:3.2},
+    health:{n:"Health, fitness or wellness",lo:2.0,hi:3.0},
+    edu:{n:"Education, training or coaching",lo:2.0,hi:3.0},
+    mfg:{n:"Manufacturing or distribution",lo:2.8,hi:4.0},
+    software:{n:"Software or subscription",lo:3.5,hi:5.5},
+    other:{n:"Other",lo:2.0,hi:3.0}
+  };
+  var factors = [
+    {id:"own",l:"Can it run without you?",o:["Fully on its own","Partly","Depends on me"]},
+    {id:"conc",l:"Biggest customer’s share of sales",o:["Under 10%","10 to 25%","Over 25%"]},
+    {id:"rec",l:"Repeat or recurring revenue",o:["Over 50%","20 to 50%","Under 20%"]},
+    {id:"trend",l:"Sales trend, last 2 to 3 years",o:["Growing","Flat","Shrinking"]},
+    {id:"age",l:"Years in business",o:["10 or more","3 to 10","Under 3"]},
+    {id:"books",l:"How clean are the books?",o:["Accountant-prepared","Mostly in order","Messy"]}
+  ];
+  var defaults = {currency:"EUR",industry:"service",revenue:850000,profit:120000,ownerPay:85000,dep:12000,interest:6000,oneTime:8000,personal:5000,mgr:70000,equip:60000,inventory:40000,otherAssets:0,liab:0,down:10,rate:10.5,term:10,sn:10,snRate:7,snTerm:5,dscr:1.25,room:10,own:1,conc:1,rec:1,trend:1,age:1,books:1};
+
+  var $ = function(id){return document.getElementById(id)};
+  var sel = $("industry");
+  Object.keys(industries).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=industries[k].n;sel.appendChild(o)});
+  var fx = $("factors");
+  factors.forEach(function(f){
+    var d=document.createElement("div");d.className="f";
+    var h='<span id="lb_'+f.id+'" style="font-size:14px;font-weight:600">'+f.l+'</span><div class="seg" role="radiogroup" aria-labelledby="lb_'+f.id+'">';
+    f.o.forEach(function(t,i){h+='<input type="radio" name="'+f.id+'" id="'+f.id+i+'" value="'+i+'"><label for="'+f.id+i+'">'+t+'</label>'});
+    d.innerHTML=h+'</div>';fx.appendChild(d);
+  });
+
+  function load(v){
+    Object.keys(v).forEach(function(k){
+      var el=$(k);
+      if(el){el.value=v[k]}
+      else{var r=document.getElementById(k+v[k]);if(r)r.checked=true}
+    });
+    $("mlo").value=industries[v.industry].lo;$("mhi").value=industries[v.industry].hi;
+  }
+  load(defaults);
+
+  sel.addEventListener("change",function(){$("mlo").value=industries[sel.value].lo;$("mhi").value=industries[sel.value].hi;calc()});
+  $("f").addEventListener("input",calc);
+  $("f").addEventListener("change",calc);
+  $("currency").addEventListener("change",calc);
+  $("reset").addEventListener("click",function(){load(defaults);calc()});
+
+  function n(id){var v=parseFloat($(id).value);return isFinite(v)?v:0}
+  function radio(id){var r=document.querySelector('input[name="'+id+'"]:checked');return r?+r.value:1}
+  function fmt(x){
+    if(!isFinite(x))return "No limit";
+    var c=$("currency").value;
+    return new Intl.NumberFormat(c==="EUR"?"nl-NL":c==="GBP"?"en-GB":"en-US",{style:"currency",currency:c,maximumFractionDigits:0}).format(Math.round(x));
+  }
+  function round(x){var s=x>=1e6?10000:x>=1e5?5000:1000;return Math.round(x/s)*s}
+  function annual(rate,years){var r=rate/100/12,m=years*12;if(m<=0)return 0;if(r===0)return 12/m;return 12*r/(1-Math.pow(1+r,-m))}
+
+  function calc(){
+    var c=$("currency").value, sym=c==="EUR"?"€":c==="GBP"?"£":"$";
+    document.querySelectorAll(".money .c").forEach(function(s){s.textContent=sym});
+
+    var sde=n("profit")+n("ownerPay")+n("dep")+n("interest")+n("oneTime")+n("personal");
+    var mgr=n("mgr"), ebitda=sde-mgr;
+    var lo=n("mlo"), hi=Math.max(n("mhi"),lo);
+    var score=0;factors.forEach(function(f){score+=1-radio(f.id)});score/=factors.length; // -1..1
+    var pos=0.5+score*0.5, mult=lo+pos*(hi-lo);
+    var inv=n("inventory");
+    var fmv=Math.max(0,sde*mult)+inv, mLow=Math.max(0,sde*lo)+inv, mHigh=Math.max(0,sde*hi)+inv;
+    var assetFloor=Math.max(0,n("equip")+inv+n("otherAssets")-n("liab"));
+
+    var down=n("down")/100, sn=n("sn")/100, bank=Math.max(0,1-down-sn);
+    var fB=annual(n("rate"),n("term")), fS=annual(n("snRate"),n("snTerm"));
+    var denom=bank*fB+sn*fS, dscrReq=Math.max(n("dscr"),1);
+    var avail=ebitda/dscrReq;
+    var cap=avail<=0?0:(denom>0?avail/denom:Infinity);
+
+    var target=round(Math.max(assetFloor,Math.min(fmv,cap)));
+    var ask=round(target*(1+n("room")/100));
+    var walk=round(Math.max(assetFloor,Math.min(mLow,target*0.92)));
+    if(walk>target)walk=target;
+
+    $("sdeOut").textContent=fmt(sde);
+    $("target").textContent=fmt(target);$("target2").textContent=fmt(target);
+    $("ask").textContent=fmt(ask);$("floor").textContent=fmt(walk);
+    $("targetSub").textContent=target>0?("About "+(target/Math.max(sde,1)).toFixed(1)+"× owner earnings"+(inv>0?", inventory included":"")):"Enter your earnings to see a price";
+
+    // buyer view at target
+    var dCash=target*down, debt=target*bank*fB+target*sn*fS;
+    var cov=debt>0?ebitda/debt:Infinity, bCash=ebitda-debt;
+    $("bDown").textContent=fmt(dCash);
+    $("bDebt").textContent=fmt(debt);
+    var dd=$("bDscr");dd.textContent=isFinite(cov)?cov.toFixed(2)+"×":"No loan";dd.className=cov>=dscrReq?"good":"bad";
+    var bc=$("bCash");bc.textContent=fmt(bCash);bc.className=bCash>0?"good":"bad";
+    $("bCoc").textContent=dCash>0?Math.round(bCash/dCash*100)+"% a year":"n/a";
+    $("bPay").textContent=ebitda>0?(target/ebitda).toFixed(1)+" years":"Never";
+
+    $("xSde").textContent=fmt(sde);$("xEbitda").textContent=fmt(ebitda);
+    $("xMult").textContent=mult.toFixed(2)+"× (range "+lo.toFixed(1)+" to "+hi.toFixed(1)+")";
+    $("xFmv").textContent=fmt(fmv);$("xCap").textContent=fmt(cap);$("xAsset").textContent=fmt(assetFloor);
+    $("xRev").textContent=n("revenue")>0?(target/n("revenue")*100).toFixed(0)+"%":"n/a";
+
+    // messages
+    var m=[];
+    if(ebitda<=0) m.push("After paying someone to run it, the business doesn’t earn anything extra. Buyers will price it close to the value of its assets, so the target falls back to the asset floor.");
+    else if(fmv>cap) m.push("Market value ("+fmt(fmv)+") is more than a typical buyer can finance ("+fmt(cap)+"). To close the gap, offer a larger seller note, a longer loan term, or an earnout paid from future profits.");
+    if(ask>cap&&ebitda>0&&fmv<=cap) m.push("Your list price sits above what most buyers can borrow for. Expect offers to come in near the target.");
+    if(radio("own")===2) m.push("A business that depends on you is a buyer’s biggest worry. Offering 3 to 6 months of paid handover support makes the price easier to defend.");
+    if(radio("books")===2) m.push("Messy books lower offers and stall bank approval. A year of accountant-prepared statements is one of the cheapest ways to raise the price.");
+    $("msg").innerHTML=m.map(function(t){return "<p>"+t+"</p>"}).join("");
+
+    // scale
+    var pts=[walk,target,ask,mLow,mHigh,assetFloor];if(isFinite(cap))pts.push(cap);
+    var minV=Math.min.apply(null,pts)*0.9, maxV=Math.max.apply(null,pts)*1.05;
+    if(maxV<=minV)maxV=minV+1;
+    function p(v){return Math.max(0,Math.min(100,(v-minV)/(maxV-minV)*100))}
+    $("band").style.left=p(mLow)+"%";$("band").style.width=Math.max(0,p(mHigh)-p(mLow))+"%";
+    $("mkW").style.left=p(walk)+"%";$("mkT").style.left=p(target)+"%";$("mkA").style.left=p(ask)+"%";
+    var mc=$("mkC");
+    if(isFinite(cap)&&cap>0){mc.style.display="";mc.style.left=p(cap)+"%";$("capNote").textContent="Dashed line: most a typical buyer can finance"}
+    else{mc.style.display="none";$("capNote").textContent=""}
+    // keep labels from colliding at the edges
+    ["mkW","mkT","mkA","mkC"].forEach(function(id){var s=$(id).querySelector("span"),l=parseFloat($(id).style.left);s.style.transform=l<12?"translateX(0)":l>88?"translateX(-100%)":"translateX(-50%)"});
+  }
+  calc();
+})();
+</script>
+</body>
+</html>
