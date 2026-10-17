@@ -141,7 +141,7 @@ button.reset{font:inherit;font-size:14px;background:none;border:1px solid var(--
   <div class="cur">
     <label for="currency" style="font-weight:500">Currency</label>
     <select id="currency" style="width:auto;padding:6px 10px">
-      <option value="EUR">€ Euro</option><option value="USD">$ US dollar</option><option value="GBP">£ Pound</option>
+      <option value="USD">$ US dollar</option><option value="EUR">€ Euro</option><option value="GBP">£ Pound</option>
     </select>
     <button type="button" class="reset" id="reset">Reset to example</button>
   </div>
@@ -158,7 +158,7 @@ button.reset{font:inherit;font-size:14px;background:none;border:1px solid var(--
       <div class="f"><label for="revenue">Annual revenue</label><div class="money"><span class="c">€</span><input id="revenue" type="number" inputmode="decimal" min="0"></div></div>
       <div class="f"><label>Price range (× owner earnings)</label>
         <div class="pair"><div class="f"><input id="mlo" type="number" step="0.1" min="0" aria-label="Low multiple"></div><div class="f"><input id="mhi" type="number" step="0.1" min="0" aria-label="High multiple"></div></div>
-        <span class="hint">Low and high. Filled in from the industry.</span></div>
+        <span class="hint">Low and high. Filled in from the industry. The nail salon range comes from 2021 to 2025 sales and current Florida listings.</span></div>
     </div>
   </fieldset>
 
@@ -174,7 +174,7 @@ button.reset{font:inherit;font-size:14px;background:none;border:1px solid var(--
       <div class="f"><label for="personal">Personal costs run through the business</label><div class="money"><span class="c">€</span><input id="personal" type="number" inputmode="decimal" min="0"></div><span class="hint">Car, phone, family on payroll</span></div>
       <div class="f wide"><label for="mgr">Salary to hire someone to run it</label><div class="money"><span class="c">€</span><input id="mgr" type="number" inputmode="decimal" min="0"></div><span class="hint">Market pay for a manager doing your job. A buyer needs to earn this before the deal makes sense.</span></div>
     </div>
-    <div class="sum"><span>Owner earnings (SDE)</span><strong id="sdeOut">€0</strong></div>
+    <div class="sum"><span>Owner earnings (SDE)</span><strong id="sdeOut">$0</strong></div>
   </fieldset>
 
   <fieldset>
@@ -213,7 +213,7 @@ button.reset{font:inherit;font-size:14px;background:none;border:1px solid var(--
 <aside>
   <div class="card" aria-live="polite">
     <p class="tlabel">Target sale price</p>
-    <div class="target" id="target">€0</div>
+    <div class="target" id="target">$0</div>
     <p class="sub" id="targetSub"></p>
     <div class="trio">
       <div class="a"><small>List it at</small><b id="ask"></b></div>
@@ -265,6 +265,7 @@ button.reset{font:inherit;font-size:14px;background:none;border:1px solid var(--
 <script>
 (function(){
   var industries = {
+    nail:{n:"Nail salon",lo:1.3,hi:2.0},
     service:{n:"Personal or home services (cleaning, salons, landscaping)",lo:1.8,hi:2.8},
     retail:{n:"Retail store",lo:1.7,hi:2.6},
     food:{n:"Restaurant, café or food",lo:1.5,hi:2.5},
@@ -285,7 +286,7 @@ button.reset{font:inherit;font-size:14px;background:none;border:1px solid var(--
     {id:"age",l:"Years in business",o:["10 or more","3 to 10","Under 3"]},
     {id:"books",l:"How clean are the books?",o:["Accountant-prepared","Mostly in order","Messy"]}
   ];
-  var defaults = {currency:"EUR",industry:"service",revenue:850000,profit:120000,ownerPay:85000,dep:12000,interest:6000,oneTime:8000,personal:5000,mgr:70000,equip:60000,inventory:40000,otherAssets:0,liab:0,down:10,rate:10.5,term:10,sn:10,snRate:7,snTerm:5,dscr:1.25,room:10,own:1,conc:1,rec:1,trend:1,age:1,books:1};
+  var defaults = {currency:"USD",industry:"nail",revenue:850000,profit:120000,ownerPay:85000,dep:12000,interest:6000,oneTime:8000,personal:5000,mgr:70000,equip:60000,inventory:40000,otherAssets:0,liab:0,down:10,rate:10.5,term:10,sn:10,snRate:7,snTerm:5,dscr:1.25,room:10,own:1,conc:1,rec:1,trend:1,age:1,books:1};
 
   var $ = function(id){return document.getElementById(id)};
   var sel = $("industry");
